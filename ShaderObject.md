@@ -267,20 +267,13 @@ nointerpolation float4 tex       : TEXCOORD0; //みたいに書く
 
 ---
 # SRP batcher対応ルール
-## 基本
-UnityPerDraw, UnityPerMaterialが仕様に沿って定義されていること。  
-TextureやStructuredBufferは これに含まれない。ただしtextureSizeプロパティとかを使う場合 それらは含まれる。
-
-## &
-1. CBUFFER_START(UnityPerMaterial), CBUFFER_END　で挟んでいないところに定数が定義されていて
-2. その定数がProperties内で同名定義されている
-1と2両方を満たしたときに、batcher対応からはずれる。
-
-## &
-materialPropertyBlock使った時、はずれる。
-
-## &
-同一シェーダー内のPass違いでCBUFFERの内容変えたとき、batcher対応からはずれる。
+- UnityPerDraw, UnityPerMaterialが仕様に沿って定義されていること。
+- TextureやStructuredBufferは これに含まれない。ただしtextureSizeプロパティとかを使う場合 それらは含まれる。
+- 以下の 1と2両方を満たしたときに、batcher対応からはずれる。
+	+ 1. CBUFFER_START(UnityPerMaterial), CBUFFER_END　で挟んでいないところに定数が定義されていて
+	+ 2. その定数がProperties内で同名定義されている
+- materialPropertyBlock使った時、batcher対応からはずれる。
+- 同一シェーダー内のPass違いでCBUFFERの内容変えたとき、batcher対応からはずれる。
 
 
 ---
@@ -338,6 +331,25 @@ VertexOutput >> FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMANTIC
 Unityにおいては、shaderのPassにAlphaToMask Onをつけておくことで、AlphaToCoverge機能がオンになる。coverge値は出力アルファが使われる。  
 さらにps_5_0だと、inoutにもできて、ピクセルシェーダ内で値を活用できるらしい  
 
+## ddx_fine系
+ddx_fine(), ddy_fine()、これらは	ddx(), ddy()の高精度版。
+SHADER_TARGET >= 45かつDirectX固有。Metalだと常にfineかも  
+ddx_fineは横2ドットの偏微分、ddy_fineは縦2ドットの偏微分になる。精度2倍！（4倍ではない）  
+
+## MSAAバッファのセット
+MSAAバッファのサンプリングは UnityのAPIマクロに入っているのだが、テクスチャセットは何故かマクロから抜けている。  
+SHADER_TARGET >= 45かつDirectXなら  
+```
+Texture2DMS<type> textureName  //MSAAテクスチャをsample番号指定Loadできる形でセット
+Texture2DMSArray<type> textureName  //MSAAテクスチャアレイをsample番号指定Loadできる形でセット
+```
+SHADER_TARGET < 45でも 以下のコマンドは使用可能  
+```
+Texture2DMS<type,sampleCount> textureName  //MSAAテクスチャをsample番号指定Loadできる形でセット //MSAAサンプル数を明示的に指定
+Texture2DArray<type> textureName  //普通のテクスチャアレイをセット
+```
+セットしたテクスチャは、LOAD_TEXTURE2D_MSAAなどのマクロによりサンプリング可能。
+[参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl#L146)  
 
 ---
 # Consrevative Depth Test/Write関連
