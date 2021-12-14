@@ -1,2 +1,2 @@
 # shaderFragment
-memo
+おおむねUnity & SRP使用をメインターゲットに、Shader作法のメモ
