@@ -22,6 +22,7 @@ RWS: HDRPにおける、カメラ相対座標。HDRPでは WSは絶対座標の�
 ```
 
 
+---
 # 座標変換
 ## 頂点シェーダー内で いつもの
 ```
@@ -107,6 +108,7 @@ posNDC.zw = posCS.zw;
 ```
 
 
+---
 # CBuffer Matrix系
 ## matrix
 C#側
@@ -287,6 +289,7 @@ for (int i = 0; i < 9; i++) {
 	+ w = no use
 
 
+---
 # GPUパイプライン上で行われる座標変換のなかでの、Z値単位の変化と取得
 Zn = Znearクリッピングプレーン値  
 Zf = Zfarクリッピングプレーン値  
@@ -366,6 +369,7 @@ z = (d - Zn) /d  *  Zf / (Zf - Zn)
 ```
 
 
+---
 # C#上で MatrixからPosition, Rotation, Scaleの復元がしてみたい（不完全）
 ```
 Vector4 vX = new Vector4(1, 0, 0, 0);

@@ -14,6 +14,7 @@
 ```
 
 
+---
 # シェーダState系オプション
 ## 表裏カリング
 ```
@@ -93,6 +94,7 @@ Blend 1 ～
 ```
 
 
+---
 # Shader Lab
 [参考](https://docs.unity3d.com/2020.3/Documentation/Manual/shader-writing.html)
 ## シェーダーモデル設定
@@ -203,7 +205,7 @@ Stencil
 ```
 
 
-## HLSLインクルード順序
+## HLSLファイル インクルード順序
 Shader内にHLSLINCLUDEしたコードと、Shader/SubShader/Pass内のHLSLPROGRAMに書いたコードの順序関係について確認した。ついでに#pragma multi_compileとの順序関係も確認。
 
 - そもそも同一HLSLスニペット内では、コード全部inline化した時の前後関係が そのまま順序となる。
@@ -218,7 +220,7 @@ Shader内にHLSLINCLUDEしたコードと、Shader/SubShader/Pass内のHLSLPROGR
 　よって、SubShader内の#defineによる分岐は HLSLINCLUDE内のコードに適用されない。
 
 
-
+---
 # CBuffer
 ## Render Layer
 貴重なUnityPerDrawプロパティ。使っていなければ、インスタンス単位のIDとか仕込むのに使えて便利。  
@@ -236,6 +238,7 @@ uint theNumber = asuint(unity_RenderingLayer.x);
 ```
 
 
+---
 # プロパティをvertexShaderからfragmentShaderに渡す際の補完オプション
 [参考仕様](https://docs.microsoft.com/ja-jp/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct)  
 ```
@@ -258,28 +261,29 @@ nointerpolation float4 tex       : TEXCOORD0; //みたいに書く
 	+ スクリーンスペース（centroid-adjusted affine）
 - centroid linear
 - sample noperspective
-+ MSAA強制
+	+ MSAA強制
 - sample linear
 
 
+---
 # SRP batcher対応ルール
 ## 基本
 UnityPerDraw, UnityPerMaterialが仕様に沿って定義されていること。  
 TextureやStructuredBufferは これに含まれない。ただしtextureSizeプロパティとかを使う場合 それらは含まれる。
 
-## マイナールール A
+## &
 1. CBUFFER_START(UnityPerMaterial), CBUFFER_END　で挟んでいないところに定数が定義されていて
 2. その定数がProperties内で同名定義されている
 1と2両方を満たしたときに、batcher対応からはずれる。
 
-## マイナールール B
+## &
 materialPropertyBlock使った時、はずれる。
 
-## マイナールール C
+## &
 同一シェーダー内のPass違いでCBUFFERの内容変えたとき、batcher対応からはずれる。
 
 
-
+---
 # Unity Gpu Instancing
 SRP batcherと排他なので、使い分けるか、自前でDOTSinstancingぽいことをやる必要がある  
 ## マテリアルインスタンス対応
@@ -314,6 +318,7 @@ UNITY_INSTANCING_BUFFER_START(PerDrawSprite)
 ```
 
 
+---
 # ちょっとマイナーな命令の使用
 [この辺](https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/dx-graphics-hlsl-semantics)も使える(DirectX固有のものを使った場合、Unityの機種互換サポートは死ぬ)。  
   
@@ -334,6 +339,7 @@ Unityにおいては、shaderのPassにAlphaToMask Onをつけておくことで
 さらにps_5_0だと、inoutにもできて、ピクセルシェーダ内で値を活用できるらしい  
 
 
+---
 # Consrevative Depth Test/Write関連
 ## 早期DepthTestの強制
 [参考1](https://docs.microsoft.com/ja-jp/windows/win32/direct3dhlsl/sm5-attributes-earlydepthstencil), [参考2](https://www.gamedev.net/forums/topic/630218-conservative-depth-output-1-zw-depth-earlydepthstencil-and-early-z/), [参考3](https://forum.unity.com/threads/does-unity-2018-understand-the-sv_depthgreater-semantic.583135/)  
@@ -367,6 +373,7 @@ and not running at sample frequency (which is forced by inputting SV_SampleIndex
 ```
 
 
+---
 # Add Custom Clipping Plane
 参考1: https://msdn.microsoft.com/ja-jp/library/ee418355(v=vs.85).aspx ,  
 [参考2](https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/dx-graphics-hlsl-function-syntax)
