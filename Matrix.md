@@ -147,11 +147,6 @@ Shader側
 #define UNITY_MATRIX_VP    _ViewProjMatrix //必須
 #define UNITY_MATRIX_I_VP  _InvViewProjMatrix //ポスプロでSCSからWSを復元するのに便利
 
-#define UNITY_RAW_MATRIX_M     unity_ObjectToWorld
-#define UNITY_RAW_MATRIX_I_M   unity_WorldToObject
-#define UNITY_SYS_MATRIX_VP    unity_MatrixVP
-#define UNITY_SCALE_SIGN       unity_WorldTransformParams.w
-
 //. built-inや公式SRPで見かけたが 必要にならない
 //#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
 //#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
