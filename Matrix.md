@@ -5,16 +5,17 @@
 # 座標空間の種類
 [SRP.core/Common.hlsl参照](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl)  
 ```
-AWS: ワールド絶対座標		Absolute world space
-WS : カメラ相対座標   	World space
-VS : ビュー空間座標		View space
-OS : オブジェクト空間座標	Object space
-CS : クリップ空間座標     Homogenous clip spaces
-TS : タンジェント空間座標	Tangent space
-NDC: Homogeneous normalized device coordinates
+AWS: ワールド絶対座標      Absolute world space
+WS : カメラ相対座標       World space
+VS : ビュー空間座標       View space
+OS : オブジェクト空間座標  Object space
+CS : クリップ空間座標      Homogenous clip spaces
+TS : タンジェント空間座標  Tangent space
+SCS: ピクセル座標         Screen space (2Dスクリーン座標, ピクセル単位)
+NDC: デバイス座標         Homogeneous normalized device coordinates (2Dスクリーン座標, 正規単位)
 
 SWS: シャドウマップ空間座標	 Shadowmap world space
-FWS: 畳んだワールド絶対座標	 Folded world space (AWSを1024で畳んだもの)
+FWS: 畳んだワールド絶対座標	 Folded world space (AWSを1024で畳んだもの, 広域データで ワールドテクスチャ投影にAWSが大きな値すぎるケースなどに利用)
 
 //. 使ってない
 TXS: UVtexture space
@@ -95,12 +96,12 @@ float3   viewDirTS       = mul( objectToTangent, viewDirOS);
 ```
 
 ## その他 空間変換メモ
-[SRP.core/SpaceTransform.hlsl参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl)
+[SRP.core/SpaceTransform.hlsl参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl)  
 ```
 posVS  = mul(UNITY_MATRIX_V, float4(posWS, 1.0)).xyz;
 ```
 
-[URP/ShaderVariablesFunctions.hlsl/GetVertexPositionInputs参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl)
+[URP/ShaderVariablesFunctions.hlsl/GetVertexPositionInputs参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl)  
 ```
 float4 ndc = posCS * 0.5f;
 posNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
@@ -137,14 +138,14 @@ Shader側
 #define SHADEROPTIONS_CAMERA_RELATIVE_RENDERING (1)
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 
-#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(unity_ObjectToWorld)	//必須
+#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(unity_ObjectToWorld) //必須
 #define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(unity_WorldToObject)
 #define UNITY_MATRIX_V     _ViewMatrix
 #define UNITY_MATRIX_I_V   _InvViewMatrix
-#define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix)	//vfxGraphで必須 //core/SpaceTransforms.hlsl > GetViewToHClipMatrix
+#define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix) //vfxGraphで必須 //core/SpaceTransforms.hlsl > GetViewToHClipMatrix
 #define UNITY_MATRIX_I_P   _InvProjMatrix
-#define UNITY_MATRIX_VP    _ViewProjMatrix	//必須
-#define UNITY_MATRIX_I_VP  _InvViewProjMatrix	//ポスプロでSCSからWSを復元するのに便利
+#define UNITY_MATRIX_VP    _ViewProjMatrix //必須
+#define UNITY_MATRIX_I_VP  _InvViewProjMatrix //ポスプロでSCSからWSを復元するのに便利
 
 #define UNITY_RAW_MATRIX_M     unity_ObjectToWorld
 #define UNITY_RAW_MATRIX_I_M   unity_WorldToObject
@@ -226,10 +227,10 @@ if (!_CullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
 		1,  //シャドーマップを何枚かくか[1～4], 1でカスケードOFF
 		Vector3.right,
 		k_ShadowMapSize,
-        light.light.shadowNearPlane,
-        out shadowViewMatrix, out shadowProjectionMatrix, out shadowSplitData
+		light.light.shadowNearPlane,
+		out shadowViewMatrix, out shadowProjectionMatrix, out shadowSplitData
 	))
-		return false;
+	return false;
 
 //. shadowBias,shadowNormalBias値を、カメラ画角に応じて補正
 float frustumSize = 2.0f / _Dat.shadow.shadowProjectionMatrix.m00;
@@ -299,9 +300,9 @@ Zf = Zfarクリッピングプレーン値
 　↓
 {頂点シェーダ内}_______________________________________________________________________________________________________________
 　output.posCS //:オブジェクト空間(実寸)posOS > ワールド空間(実寸)posWS > ビュー空間(実寸)posVS
-　↓			   //   > パースペクティブ空間(ただしzで割る前なので、固定画角90度相当)posCS
-　↓	  		   //この時点でのZ値は、Zf側にZn分だけ縮めてあるものの0-1リニア値ではある。
-　↓	  		   //w成分にビュー空間でのZ値がはいってる。　//クリッピング空間の同次(homogenous) 座標 算出
+　↓            //   > パースペクティブ空間(ただしzで割る前なので、固定画角90度相当)posCS
+　↓            //この時点でのZ値は、Zf側にZn分だけ縮めてあるものの0-1リニア値ではある。
+　↓            //w成分にビュー空間でのZ値がはいってる。　//クリッピング空間の同次(homogenous) 座標 算出
 　↓
 {AUTO:ラスタライズ}____________________________________________________________________________________________________________
 　Z = posCS.z /pozCS.w //:パースペクティブ空間 > Zバッファ単位
@@ -312,25 +313,25 @@ Zf = Zfarクリッピングプレーン値
 　↓        　↓
 　↓　　　　{フラグメントシェーダ内}_______________________________________________________________________________________________
 　↓        customZ = input.posCS.z + _ZOffset //OPTIONAL:Zバッファ単位で ピクセルオフセット加工したい場合
-　↓        									  //非リニア空間でオフセットすることになる。ちゃんと実寸値でオフセットするのは	かなり面倒
+　↓                                           //非リニア空間でオフセットすることになる。ちゃんと実寸値でオフセットするのは	かなり面倒
 　↓
 　↓        float dist = GetDist(input.posCS.z);
-　↓					  = 1.0 / (_ZBufferParams.z * input.posCS.z + _ZBufferParams.w);
-　↓           		  //GET:原点からの実寸距離 リニア値
+　↓                   = 1.0 / (_ZBufferParams.z * input.posCS.z + _ZBufferParams.w);
+　↓                   //GET:原点からの実寸距離 リニア値
 　↓
 {AUTO:Zバッファ描き込み}_______________________________________________________________________________________________________
 　↓
 {ディファードシェーディングのライトパス or ポスプロ内}______________________________________________________________________________
 　float depthSq = SAMPLE_DEPTH_TEXTURE( _CameraDepthTexture, uv); //:Zバッファの値
-　↓																			↓
-　float depth = Linear01Depth( depthSq);										↓
-  ↓           = 1.0 / (_ZBufferParams.x * depthSq + _ZBufferParams.y);		↓
-  ↓           //GET:原点からZfまでを0-1に正規化した、リニア値						↓
-  ↓																			↓
+　↓                                                                     ↓
+　float depth = Linear01Depth( depthSq);                                ↓
+  ↓           = 1.0 / (_ZBufferParams.x * depthSq + _ZBufferParams.y);  ↓
+  ↓           //GET:原点からZfまでを0-1に正規化した、リニア値                ↓
+  ↓                                                                     ↓
   ↓                                               float dist = LinearEyeDepth( depthSq); 
-  ↓                                                     = 1.0 / (_ZBufferParams.z * depthSq + _ZBufferParams.w);
-  ↓                                                     = 1.0 / ((1-far/near)/far * depthSq + (far/near)/far); 
-  ↓													    //GET:原点からの実寸距離 リニア値
+  ↓                                                          = 1.0 / (_ZBufferParams.z * depthSq + _ZBufferParams.w);
+  ↓                                                          = 1.0 / ((1-far/near)/far * depthSq + (far/near)/far); 
+  ↓                                                          //GET:原点からの実寸距離 リニア値
   ↓
   //ex. BRP-deferredでの座標変換 //SRP系においてはUNITY_MATRIX_I_VPを用意してシンプルに対応する手法が主流。座標変換の項を参照。
 　i.ray = i.ray *( _ProjectionParams.z /i.ray.z);
@@ -348,7 +349,7 @@ Zf = Zfarクリッピングプレーン値
 ```
 
 ## ラスタライズ時のdepth変換への理解を深めようメモ
-[重要参考](http://marupeke296.com/DXG_No70_perspective.html)
+[重要参考](http://marupeke296.com/DXG_No70_perspective.html)  
 d =距離(実寸)  
 z =距離(Zバッファ単位)  
 ```

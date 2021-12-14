@@ -21,9 +21,9 @@
 Cull [_CullMode]
 
 _CullMode =
-	Off		//両面描画
-	Front	//裏面のみ描画
-	Back	//表面のみ描画
+	Off    //両面描画
+	Front  //裏面のみ描画
+	Back   //表面のみ描画
 ```
 
 ## デプス比較テスト
@@ -35,7 +35,7 @@ ZTest [_ZTest]
 _ZTest =
   |   |   |
 0 [-------]	Disabled	 //常に描く
-1 			Never
+1          	Never
 2 [-]		Less
 3    [+]	Equal
 4 [---+]	LesEqual	 //手前なら描く。デフォルト
@@ -51,8 +51,8 @@ _ZTest =
 ZWrite [_ZWrite]
 
 _ZWrite
-	On		//Zバッファに描き込む
-	Off 	//Zバッファに描き込まない
+	On    //Zバッファに描き込む
+	Off   //Zバッファに描き込まない
 ```
 
 ## カラー合成
@@ -61,24 +61,24 @@ BlendOp [_BlendOp]
 Blend   [_SrcBlend] [_DstBlend]
 
 _BlendOp
-	Add							// SrcColor *_SrcBlend + DstColor *_DstBlend
-	Sub (Subtract)				// DstColor *_DstBlend	- SrcColor *_SrcBlend
-	RevSub (ReverseSubtract)	// SrcColor *_SrcBlend - DstColor *_DstBlend	
-	Min							// Min( SrcColor, DstColor)
-	Max							// Max( SrcColor, DstColor)
+	Add                        // SrcColor *_SrcBlend + DstColor *_DstBlend
+	Sub (Subtract)             // DstColor *_DstBlend	- SrcColor *_SrcBlend
+	RevSub (ReverseSubtract)   // SrcColor *_SrcBlend - DstColor *_DstBlend	
+	Min                        // Min( SrcColor, DstColor)
+	Max                        // Max( SrcColor, DstColor)
 
 _BlendMode (= _SrcBlend, _DstBlend)
-	Zero			 // 0						:	 (0,0,0,0)
-	One				 // 1						:	 (1,1,1,1)
-	DstColor		 // 画面の色					:	d(R,G,B,A)
-	SrcColor		 // シェーダ出力色			:	s(R,G,B,A)
-	OneMinusDstColor // 反転 画面の色				:	 (1,1,1,1) - d(R,G,B,A)
-	SrcAlpha		 // シェーダ出力アルファ		:	s(A,A,A,A)
-	OneMinusSrcColor // 反転 シェーダ出力色		:	 (1,1,1,1) - s(R,G,B,A)
-	DstAlpha		 // 画面のアルファ			:	d(A,A,A,A)
-	OneMinusDstAlpha // 反転 画面のアルファ		:	 (1,1,1,1) - d(A,A,A,A)
-	SrcAlphaSaturate // 画面のアルファに空きがある範囲で加算ブレンドする時用 :	 (f,f,f,1) ただしf=Min(As, 1-Ad)
-	OneMinusSrcAlpha // 反転 シェーダ出力アルファ	:	 (1,1,1,1) - s(A,A,A,A)
+	Zero              // 0                  :  (0,0,0,0)
+	One	              // 1                  :  (1,1,1,1)
+	DstColor          // 画面の色	            : d(R,G,B,A)
+	SrcColor          // シェーダ出力色       : s(R,G,B,A)
+	OneMinusDstColor  // 反転 画面の色        :  (1,1,1,1) - d(R,G,B,A)
+	SrcAlpha          // シェーダ出力アルファ  : s(A,A,A,A)
+	OneMinusSrcColor  // 反転 シェーダ出力色	  :  (1,1,1,1) - s(R,G,B,A)
+	DstAlpha          // 画面のアルファ       : d(A,A,A,A)
+	OneMinusDstAlpha  // 反転 画面のアルファ   :  (1,1,1,1) - d(A,A,A,A)
+	SrcAlphaSaturate  // 画面のアルファに空きがある範囲で加算ブレンドする時用  :  (f,f,f,1) ただしf=Min(As, 1-Ad)
+	OneMinusSrcAlpha  // 反転 シェーダ出力アルファ  :	  (1,1,1,1) - s(A,A,A,A)
 ```
 
 カラーとアルファそれぞれに 違うブレンド式を設定する
@@ -96,7 +96,7 @@ Blend 1 ～
 
 ---
 # Shader Lab
-[参考](https://docs.unity3d.com/2020.3/Documentation/Manual/shader-writing.html)
+[参考](https://docs.unity3d.com/2020.3/Documentation/Manual/shader-writing.html)  
 ## シェーダーモデル設定
 ```
 #pragma target 4.5
@@ -162,7 +162,7 @@ Shader内では以下のように使用
 
 
 ## シェーダState系オプションをPropertiesから（customEditorを介さず）指定
-[参考](https://github.com/microsoft/MixedRealityToolkit-Unity/blob/main/Assets/MRTK/StandardAssets/Shaders/MixedRealityStandard.shader)
+[参考](https://github.com/microsoft/MixedRealityToolkit-Unity/blob/main/Assets/MRTK/StandardAssets/Shaders/MixedRealityStandard.shader)  
 Properties {} 内で
 ```
 [Enum(UnityEngine.Rendering.CullMode)] _CullMode("Cull Mode", Float) = 2                     // "Back"
@@ -240,7 +240,7 @@ uint theNumber = asuint(unity_RenderingLayer.x);
 
 ---
 # プロパティをvertexShaderからfragmentShaderに渡す際の補完オプション
-[参考仕様](https://docs.microsoft.com/ja-jp/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct)  
+[参考](https://docs.microsoft.com/ja-jp/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct)  
 ```
 nointerpolation float4 tex       : TEXCOORD0; //みたいに書く
 ```
@@ -376,7 +376,7 @@ and not running at sample frequency (which is forced by inputting SV_SampleIndex
 ---
 # Add Custom Clipping Plane
 参考1: https://msdn.microsoft.com/ja-jp/library/ee418355(v=vs.85).aspx ,  
-[参考2](https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/dx-graphics-hlsl-function-syntax)
+[参考2](https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/dx-graphics-hlsl-function-syntax)  
 これで凹み投影デカール（でも手前の壁には隠れる）とかを表現しよう  
 
 VertexOutputに

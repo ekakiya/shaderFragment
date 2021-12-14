@@ -51,7 +51,7 @@ R16 = 28,				// R16_UNORM
 
 ---
 # Mipmap上限設定
-[参考1](https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Graphics/Texture.cs#L494), [参考2](https://forum.unity.com/threads/limiting-the-amount-of-mipmap-levels.650011/#post-5089640)
+[参考1](https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Graphics/Texture.cs#L494), [参考2](https://forum.unity.com/threads/limiting-the-amount-of-mipmap-levels.650011/#post-5089640)  
 TextureのMipmap上限を、スクリプトから生成時に設定できる。
 ```
 new Texture2D(width:256, height:256, textureFormat:TextureFormat.ARGB32, mipCount:3, linear:true)
