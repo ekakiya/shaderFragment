@@ -332,7 +332,7 @@ Unityにおいては、shaderのPassにAlphaToMask Onをつけておくことで
 さらにps_5_0だと、inoutにもできて、ピクセルシェーダ内で値を活用できるらしい  
 
 ## ddx_fine系
-ddx_fine(), ddy_fine()、これらは	ddx(), ddy()の高精度版。
+ddx_fine(), ddy_fine()、これらは	ddx(), ddy()の高精度版。  
 SHADER_TARGET >= 45かつDirectX固有。Metalだと常にfineかも  
 ddx_fineは横2ドットの偏微分、ddy_fineは縦2ドットの偏微分になる。精度2倍！（4倍ではない）  
 
@@ -343,12 +343,12 @@ SHADER_TARGET >= 45かつDirectXなら
 Texture2DMS<type> textureName  //MSAAテクスチャをsample番号指定Loadできる形でセット
 Texture2DMSArray<type> textureName  //MSAAテクスチャアレイをsample番号指定Loadできる形でセット
 ```
-SHADER_TARGET < 45でも 以下のコマンドは使用可能  
+SHADER_TARGET < 45でも、以下のコマンドについては使用可能  
 ```
 Texture2DMS<type,sampleCount> textureName  //MSAAテクスチャをsample番号指定Loadできる形でセット //MSAAサンプル数を明示的に指定
 Texture2DArray<type> textureName  //普通のテクスチャアレイをセット
 ```
-セットしたテクスチャは、LOAD_TEXTURE2D_MSAAなどのマクロによりサンプリング可能。
+セットしたテクスチャは、LOAD_TEXTURE2D_MSAAなどのマクロでサンプリング可能。
 [参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl#L146)  
 
 ---
