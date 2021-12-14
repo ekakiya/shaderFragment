@@ -4,9 +4,31 @@
 
 # RenderTextureFormat
 ## GraphicsFormat指定でRenderTexture作成
-SRP.coreに用意された、RTHandleを使う事で、間接的に この手法を取れるが、他にも色んな機能が付いてきてしまうので、シンプルにGraphicsFormat指定で生成する場合は以下。
+SRP.coreに用意された RTHandleクラスを使う事で、間接的に この手法を取れるが、他にも色んな機能が付いてきてしまう。  
+シンプルにGraphicsFormat指定で生成する場合は以下。  
+ex.
 ```
--
+RenderTexture _RtColor = new RenderTexture(k_RtColor_width, k_RtColor_height, (int)DepthBits.None, GraphicsFormat.R16G16B16A16_SFloat)
+{
+	hideFlags = HideFlags.HideAndDontSave,
+	volumeDepth = 1,
+	filterMode = FilterMode.Bilinear,
+	wrapMode = TextureWrapMode.Clamp,
+	dimension = TextureDimension.Tex2D,
+	enableRandomWrite = false,
+	useMipMap = false,
+	autoGenerateMips = false,
+	anisoLevel = 1,
+	mipMapBias = 0f,
+	antiAliasing = (int)MSAASamples.MSAA4x,
+	bindTextureMS = true,
+	useDynamicScale = false,
+	//vrUsage = VRTextureUsage.None,
+	memorylessMode = RenderTextureMemoryless.None,
+	name = CoreUtils.GetRenderTargetAutoName(k_RtColor_width, k_RtColor_height, 1, GraphicsFormatUtility.GetRenderTextureFormat(GraphicsFormat.R16G16B16A16_SFloat), 
+	"ColorBuffer", mips: false, enableMSAA: true, msaaSamples: MSAASamples.MSAA4x)
+};
+_RtColor.Create();
 ```
 
 ## PC Standaloneにおける フォーマット読み替え
@@ -50,9 +72,68 @@ R16 = 28,				// R16_UNORM
 
 
 ---
-# Mipmap上限設定
+# Textureインポート時に何かやる
+[参考](https://github.com/keijiro/unity-dither4444/blob/master/Assets/Editor/TextureModifier.cs)
+## 基本
+ex.
+```
+public sealed partial class TextureImportProcessor : AssetPostprocessor
+{
+	void OnPreprocessTexture()
+	{
+		TextureImporter ti = assetImporter as TextureImporter;
+
+		if (ti.assetPath.Contains("KeyName"))
+		{
+			ti.textureFormat = TextureImporterFormat.RGBA32;
+			PreProcess_KeyName(ref ti);
+		}
+	}
+
+	void OnPostprocessTexture(Texture2D texture)
+	{
+		TextureImporter ti = assetImporter as TextureImporter;
+
+		if (ti)
+		{
+			if (ti.assetPath.Contains("KeyName"))
+			{
+				PostProcess_KeyName(ref ti, ref texture);
+				EditorUtility.CompressTexture(texture, TextureFormat.BC7, TextureCompressionQuality.Best);
+			}
+		}
+	}
+}
+```
+
+## ComputeShader利用
+Resourcesにcomputeファイル置いて使っています…。  
+ex.
+```
+ComputeShader cs = (ComputeShader)Resources.Load("CsExtendDistanceField");
+
+RenderTexture _RtCompute = new RenderTexture(texWidth, texHeight, 0, RenderTextureFormat.ARGBFloat);
+_RtCompute.enableRandomWrite = true;
+_RtCompute.Create();
+
+cs.SetTexture(0, "InputTex", texture);
+cs.SetTexture(0, "ResultTex", _RtCompute);
+cs.Dispatch(0, texWidth / 16, texHeight / 16, 1);
+
+RenderTexture nowRt = RenderTexture.active;
+RenderTexture.active = _RtCompute;
+texture.ReadPixels(new Rect(0, 0, texWidth, texHeight), 0, 0);
+texture.Apply();
+
+RenderTexture.active = nowRt;
+_RtCompute?.Release();
+```
+
+
+---
+# Mipmap限界レベル設定
 [参考1](https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Graphics/Texture.cs#L494), [参考2](https://forum.unity.com/threads/limiting-the-amount-of-mipmap-levels.650011/#post-5089640)  
-TextureのMipmap上限を、スクリプトから生成時に設定できる。
+TextureのMipmap限界レベルを、生成時にスクリプトから設定できる。
 ```
 new Texture2D(width:256, height:256, textureFormat:TextureFormat.ARGB32, mipCount:3, linear:true)
 ```

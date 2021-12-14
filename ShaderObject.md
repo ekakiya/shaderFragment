@@ -161,7 +161,7 @@ Shader内では以下のように使用
 ３．PassやShader側には静的分岐を用意しておき、Propertiesには書かず、直接Scriptから設定する  
 
 
-## シェーダState系オプションをPropertiesから（customEditorを介さず）指定
+## シェーダのState系オプションを、customEditorScriptを介さずに指定
 [参考](https://github.com/microsoft/MixedRealityToolkit-Unity/blob/main/Assets/MRTK/StandardAssets/Shaders/MixedRealityStandard.shader)  
 Properties {} 内で
 ```
@@ -205,7 +205,7 @@ Stencil
 ```
 
 
-## HLSLファイル インクルード順序
+## HLSLコードがインクルードされる順序
 Shader内にHLSLINCLUDEしたコードと、Shader/SubShader/Pass内のHLSLPROGRAMに書いたコードの順序関係について確認した。ついでに#pragma multi_compileとの順序関係も確認。
 
 - そもそも同一HLSLスニペット内では、コード全部inline化した時の前後関係が そのまま順序となる。
@@ -239,10 +239,11 @@ uint theNumber = asuint(unity_RenderingLayer.x);
 
 
 ---
-# プロパティをvertexShaderからfragmentShaderに渡す際の補完オプション
+# vertexからfragmentに渡すプロパティ値の補完設定
 [参考](https://docs.microsoft.com/ja-jp/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct)  
+ex.  
 ```
-nointerpolation float4 tex       : TEXCOORD0; //みたいに書く
+nointerpolation float4 tex       : TEXCOORD0;
 ```
 
 - linear
@@ -278,7 +279,10 @@ nointerpolation float4 tex       : TEXCOORD0; //みたいに書く
 
 ---
 # Unity Gpu Instancing
-SRP batcherと排他なので、使い分けるか、自前でDOTSinstancingぽいことをやる必要がある  
+所謂GPUinstancingバッチは、SRP batcherが有効の場合 使用されない。  
+ScriptからのGPUinstancing描画はSRP batcherと同時使用可能だが、PerInstancingプロパティはSRP batcherと排他。  
+なので、多量に色違いオブジェクトを描くなどのケースでは、使い分けるか、自前で DOTSinstancing的な手法  
+(InstanceIDに対応したArrayを用意してComputeBufferにセットし、シェーダで これを読む)を実装する必要がある。  
 ## マテリアルインスタンス対応
 - マテリアルのGPU Instance設定をオン
 
@@ -312,7 +316,7 @@ UNITY_INSTANCING_BUFFER_START(PerDrawSprite)
 
 
 ---
-# ちょっとマイナーな命令の使用
+# ちょっとマイナーなシェーダ命令
 [この辺](https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/dx-graphics-hlsl-semantics)も使える(DirectX固有のものを使った場合、Unityの機種互換サポートは死ぬ)。  
   
 ## VERTEXID_SEMANTIC //頂点番号
@@ -360,16 +364,17 @@ Texture2DArray<type> textureName  //普通のテクスチャアレイをセッ�
 float4 frag(){}
 ```
 frag前のearly Z Test強制だけでなく、ZWriteも同時に行われる。  
-後からfrag内でSV_DEPTHを出力したり、clipしても、Zを改めて変更はできない。。  
+後からfrag内でSV_DEPTHを出力したり、clipしても、早期に描き込んだZ値を改める事はできない。  
 
 ### 実例
-自前のCommonOpaqueDepthOnlyシェーダに付けてみたら、逆に0.2ms程度遅くなったので やめといた。少なくともこのシェーダーはGPU判断でearlyDepthTest行われていると判断。  
+自前のCommonOpaqueDepthOnly(不透明まとめ描き)シェーダに使ってみたら、逆に0.2ms程度遅くなったので やめといた。  
+また、Depthをfragmentからいじらないシェーダーは、GPU判断でearlyDepthTest行われている事が多いと思われる。  
 
 
 ## Consrevative Depth
 以下のようなSVをfragから出力することで、frag後には その値でDepthTest,Writeを行うが、early Z Testも行ってくれる。  
 DxShaderModel5.0以降 = pragma4.5必要。  
-VfxGraph-HDRPのパーティクルなどでも活用されている。あとUE4のWorldPossitionOffset（奥にしかシフトできない制限）。  
+VfxGraph - HDRPのパーティクルなどでも活用されている。あとUE4のWorldPossitionOffset（奥にしかシフトできない制限つきpixelオフセット）。  
 ```
 float x :SV_DepthLessEqual
 float x :SV_DepthGreaterEqual

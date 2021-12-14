@@ -25,7 +25,7 @@ RWS: HDRPにおける、カメラ相対座標。HDRPでは WSは絶対座標の�
 
 ---
 # 座標変換
-## 頂点シェーダー内で いつもの
+## 頂点シェーダー内で いつものやつ
 ```
 posWS = mul(UNITY_MATRIX_M,  float4(input.posOS.xyz, 1.0));
 posCS = mul(UNITY_MATRIX_VP, posWS);
@@ -81,18 +81,18 @@ float3   viewDirTS       = mul( objectToTangent, viewDirOS);
 
 ## ポスプロComputeShader内、Deferred的な用途でWSを扱う
 ```
-	uint2 posSCS  = Gid * TILE_SIZE + DecodeMorton2D(GTid); //Computeスレッドを画面のピクセルに割り当て
-	float2 posNDC = posSCS * PPS_SCREEN_ZW; //PPS_SCREEN_ZWは画面解像度XYの逆数
+ uint2 posSCS  = Gid * TILE_SIZE + DecodeMorton2D(GTid); //Computeスレッドを画面のピクセルに割り当て
+ float2 posNDC = posSCS * PPS_SCREEN_ZW; //PPS_SCREEN_ZWは画面解像度XYの逆数
 
-	float depth = LOAD_TEXTURE2D(_DepthTex, posSCS).r;
+ float depth = LOAD_TEXTURE2D(_DepthTex, posSCS).r;
 
-	float4 posCS = float4(posNDC * 2.0 - 1.0, depth, 1.0);
+ float4 posCS = float4(posNDC * 2.0 - 1.0, depth, 1.0);
 #if UNITY_UV_STARTS_AT_TOP
-	posCS.y = -posCS.y;
+ posCS.y = -posCS.y;
 #endif
 
-	float4 posWS = mul(UNITY_MATRIX_I_VP, posCS);
-	posWS.xyz /= posWS.w;
+ float4 posWS = mul(UNITY_MATRIX_I_VP, posCS);
+ posWS.xyz /= posWS.w;
 ```
 
 ## その他 空間変換メモ
@@ -217,7 +217,8 @@ Shader側
 
 
 ## shadowmap matrix
-C#側 ex.並行光源
+ex.並行光源  
+C#側
 ```
 shadowRenderSetting = new Vector4(-light.light.shadowBias * k_ShadowTexelSize, -light.light.shadowNormalBias * k_ShadowTexelSize, 0.0f, 0.0f);
 
@@ -291,7 +292,7 @@ for (int i = 0; i < 9; i++) {
 
 
 ---
-# GPUパイプライン上で行われる座標変換のなかでの、Z値単位の変化と取得
+# GPUパイプライン上の、Z値単位の変化と取得
 Zn = Znearクリッピングプレーン値  
 Zf = Zfarクリッピングプレーン値  
 ```
@@ -350,28 +351,32 @@ Zf = Zfarクリッピングプレーン値
 
 ## ラスタライズ時のdepth変換への理解を深めようメモ
 [重要参考](http://marupeke296.com/DXG_No70_perspective.html)  
-d =距離(実寸)  
-z =距離(Zバッファ単位)  
+d = 距離(実寸)  
+z = 距離(Zバッファ単位)  
 ```
-d2z:  z = ( d -Zn) *Zf /( d *( Zf -Zn))		// (d:[Zn - Zf]>[0 - 1])/d みたいな感じ。Znぶん縮めて Zf距離で正規化したリニア値を、Zfで割ることで、Zn付近に値幅の大半を使用して 近景のZ精度を稼ぐ、逆ガンマ的カーブが作れる。
-z2d:  d = Zn *Zf /( Zf + z *( Zn -Zf))		// d2zの逆変換。
+d2z:  z = ( d -Zn) *Zf /( d *( Zf -Zn))  // (d:[Zn - Zf]>[0 - 1])/d みたいな感じ。
+                                         // Znぶん縮めて Zf距離で正規化したリニア値を、Zfで割ることで、
+                                         // Zn付近に値幅の大半を使用して 近景のZ精度を稼ぐ、逆ガンマ的カーブが作れる。
 
-z2dは GPUでv2fのあたりで自動的に変換される。
+z2d:  d = Zn *Zf /( Zf + z *( Zn -Zf))   // d2zの逆変換。
 
-d2zは LinearEyeDepthで変換できる。この変換を効率的に処理する 為に _ZBufferParams( 1- Zf /Zn , Zf /Zn , ( 1 - Zf /Zn) /Zf , ( Zf /Zn) /Zf)が定義されている。
+// z2dは GPUでv2fのあたりで自動的に変換される。
 
-_ProjectionParams(座標反転フラグ , Zn , Zf , 1 /Zf)
+// d2zは LinearEyeDepthで変換できる。この変換を効率的に処理する 為に、Unityでは 
+// _ZBufferParams( 1- Zf /Zn , Zf /Zn , ( 1 - Zf /Zn) /Zf , ( Zf /Zn) /Zf)が定義されている。
+
+// _ProjectionParams(座標反転フラグ , Zn , Zf , 1 /Zf)
 ```
 .  
 ```
 z = (d - Zn) /d  *  Zf / (Zf - Zn)
-つまり、カメラからの距離とニアからの距離の割合、ともいえる。
-この割合が、nearで０，farで1になるよう、後半の定数でスケールしている。
+// つまり、カメラからの距離とニアからの距離の割合、ともいえる。
+// この割合が、nearで０，farで1になるよう、後半の定数でスケールしている。
 ```
 
 
 ---
-# C#上で MatrixからPosition, Rotation, Scaleの復元がしてみたい（不完全）
+# C#上で MatrixからPosition, Rotation, Scaleの復元をしたい（不具合あり）
 ```
 Vector4 vX = new Vector4(1, 0, 0, 0);
 Vector4 vY = new Vector4(0, 1, 0, 0);
