@@ -79,18 +79,18 @@ float3   viewDirTS       = mul( objectToTangent, viewDirOS);
 
 ## ポスプロComputeShader内、Deferred的な用途でWSを扱う
 ```
-uint2 posSCS  = Gid * TILE_SIZE + DecodeMorton2D(GTid); //Computeスレッドを画面のピクセルに割り当て
-float2 posNDC = posSCS * PPS_SCREEN_ZW; //PPS_SCREEN_ZWは画面解像度XYの逆数
+	uint2 posSCS  = Gid * TILE_SIZE + DecodeMorton2D(GTid); //Computeスレッドを画面のピクセルに割り当て
+	float2 posNDC = posSCS * PPS_SCREEN_ZW; //PPS_SCREEN_ZWは画面解像度XYの逆数
 
-float depth = LOAD_TEXTURE2D(_DepthTex, posSCS).r;
+	float depth = LOAD_TEXTURE2D(_DepthTex, posSCS).r;
 
-float4 posCS = float4(posNDC * 2.0 - 1.0, depth, 1.0);
+	float4 posCS = float4(posNDC * 2.0 - 1.0, depth, 1.0);
 #if UNITY_UV_STARTS_AT_TOP
 	posCS.y = -posCS.y;
 #endif
 
-float4 posWS = mul(UNITY_MATRIX_I_VP, posCS);
-posWS.xyz /= posWS.w;
+	float4 posWS = mul(UNITY_MATRIX_I_VP, posCS);
+	posWS.xyz /= posWS.w;
 ```
 
 ## その他 空間変換メモ
@@ -114,7 +114,7 @@ C#側
 foldedCameraPosition = Vector3(cameraPosition.x % 1024.0f, cameraPosition.y % 1024.0f, cameraPosition.z % 1024.0f);
 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true); //renderTexture使ってる>True>上下反転など
 Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
-		  viewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1)); //camera relative化
+viewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1)); //camera relative化
 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
 Matrix4x4 invViewProjMatrix = viewProjMatrix.inverse;
 
@@ -135,14 +135,14 @@ Shader側
 #define SHADEROPTIONS_CAMERA_RELATIVE_RENDERING (1)
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 
-#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(unity_ObjectToWorld)			//必須
+#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(unity_ObjectToWorld)	//必須
 #define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(unity_WorldToObject)
 #define UNITY_MATRIX_V     _ViewMatrix
 #define UNITY_MATRIX_I_V   _InvViewMatrix
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix)	//vfxGraphで必須 //core/SpaceTransforms.hlsl > GetViewToHClipMatrix
 #define UNITY_MATRIX_I_P   _InvProjMatrix
-#define UNITY_MATRIX_VP    _ViewProjMatrix												//必須
-#define UNITY_MATRIX_I_VP  _InvViewProjMatrix											//ポスプロでSCSからWSを復元するのに便利
+#define UNITY_MATRIX_VP    _ViewProjMatrix	//必須
+#define UNITY_MATRIX_I_VP  _InvViewProjMatrix	//ポスプロでSCSからWSを復元するのに便利
 
 #define UNITY_RAW_MATRIX_M     unity_ObjectToWorld
 #define UNITY_RAW_MATRIX_I_M   unity_WorldToObject
@@ -161,8 +161,8 @@ Shader側
 #define UNITY_SYS_MATRIX_VP    unity_MatrixVP
 #define UNITY_SCALE_SIGN       unity_WorldTransformParams.w
 
-#define CB_PIVOT_POS_AWS	   unity_ObjectToWorld._m03_m13_m23
-#define CB_PIVOT_POS_WS		   PosAWSToPosWS(unity_ObjectToWorld._m03_m13_m23)
+#define CB_PIVOT_POS_AWS		unity_ObjectToWorld._m03_m13_m23
+#define CB_PIVOT_POS_WS			PosAWSToPosWS(unity_ObjectToWorld._m03_m13_m23)
 
 //. ここでGPUインスタンス対応。UnityInstancing.hlslをベースに 好きにやる
 #include "Instancing.hlsl"
@@ -182,35 +182,35 @@ Shader側
 #define CB_CAMERA_NEAR_PLANE	_ProjectionParams.y
 ```
 
-- _ProjectionParams //set by unity
-+ x = 1 or -1(if projection is flipped)
-+ y = near plane
-+ z = far plane
-+ w = 1/far plane
+- \_ProjectionParams //set by unity
+	+ x = 1 or -1(if projection is flipped)
+	+ y = near plane
+	+ z = far plane
+	+ w = 1/far plane
 
-- _ScreenParams //set by unity
-+ x = width
-+ y = height
-+ z = 1 + 1.0/width
-+ w = 1 + 1.0/height
+- \_ScreenParams //set by unity
+	+ x = width
+	+ y = height
+	+ z = 1 + 1.0/width
+	+ w = 1 + 1.0/height
 
-- _ZBufferParams //set by unity
-+ x = 1-far/near
-+ y = far/near
-+ z = x/far
-+ w = y/far
+- \_ZBufferParams //set by unity
+	+ x = 1-far/near
+	+ y = far/near
+	+ z = x/far
+	+ w = y/far
 
 - unity_OrthoParams //set by unity //vfxGraphで必須 //VFXCommon.cginc > IsPerspectiveProjection
-+ x = orthographic camera's width
-+ y = orthographic camera's height
-+ z = unused
-+ w = 1.0 if camera is ortho, 0.0 if perspective
+	+ x = orthographic camera's width
+	+ y = orthographic camera's height
+	+ z = unused
+	+ w = 1.0 if camera is ortho, 0.0 if perspective
 
 - unity_WorldTransformParams
-+ x = no use
-+ y = no use
-+ z = no use
-+ w = usually 1.0, or -1.0 for odd-negative scale transforms
+	+ x = no use
+	+ y = no use
+	+ z = no use
+	+ w = usually 1.0, or -1.0 for odd-negative scale transforms
 
 
 ## shadowmap matrix
@@ -258,11 +258,11 @@ posWS.xyz = CB_SUN_DIRECTION * _ShadowRenderSetting.xxx + posWS.xyz;
 posWS.xyz = normalWS * scale.xxx + posWS.xyz;
 ```
 
-- _ShadowRenderSetting
-+ x = shadow bias
-+ y = shadow normal bias
-+ z =  no use
-+ w = no use
+- \_ShadowRenderSetting
+	+ x = shadow bias
+	+ y = shadow normal bias
+	+ z =  no use
+	+ w = no use
 
 ### shadowmap取得時
 Shader側
@@ -280,11 +280,11 @@ for (int i = 0; i < 9; i++) {
 }
 ```
 
-- _ShadowSampleSetting //set by SRP
-+ x = 1/shadowMap Size
-+ y = shadowMap Size
-+ z = no use
-+ w = no use
+- \_ShadowSampleSetting //set by SRP
+	+ x = 1/shadowMap Size
+	+ y = shadowMap Size
+	+ z = no use
+	+ w = no use
 
 
 # GPUパイプライン上で行われる座標変換のなかでの、Z値単位の変化と取得

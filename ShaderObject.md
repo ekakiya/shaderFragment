@@ -243,19 +243,19 @@ nointerpolation float4 tex       : TEXCOORD0; //みたいに書く
 ```
 
 - linear
-+ 無指定だとこれ。普通のリニア補間
+	+ 無指定だとこれ。普通のリニア補間
 - nointerpolation
-+ 補間なし。たぶん、トライアングル0番？頂点の値だけが来てる。
+	+ 補間なし。たぶん、トライアングル0番？頂点の値だけが来てる。
 - noperspective
-+ パース補正なし（つまりスクリーンスペース)のリニア補間
+	+ パース補正なし（つまりスクリーンスペース)のリニア補間
 - centroid
-+ 三角形の重心補間あり。MSAA必須。トライアングルのエッジ（メッシュのエッジだけではない）でアンチかかる感じがあるが、精度あまいので、グラデがディザったりもするぞ。なので、その後ライン抽出とかやるとlinearより荒れる。
+	+ 三角形の重心補間あり。MSAA必須。トライアングルのエッジ（メッシュのエッジだけではない）でアンチかかる感じがあるが、精度あまいので、グラデがディザったりもするぞ。なので、その後ライン抽出とかやるとlinearより荒れる。
 - sample
-+ ShaderModel4.1以降。MSAA必須。pixel中心ではなくsample点で値を取る。これ使った時点で、MSAAの全サンプルでpixelshaderが走る。(SV_SampleIndex読んだ時とかと同じように)。きれいー…なぜならuperSamplingだから。
+	+ ShaderModel4.1以降。MSAA必須。pixel中心ではなくsample点で値を取る。これ使った時点で、MSAAの全サンプルでpixelshaderが走る。(SV_SampleIndex読んだ時とかと同じように)。きれいー…なぜならuperSamplingだから。
 
 ## 複数の組み合わせが可能なもの
 - centroid noperspective
-+ スクリーンスペース（centroid-adjusted affine）
+	+ スクリーンスペース（centroid-adjusted affine）
 - centroid linear
 - sample noperspective
 + MSAA強制
