@@ -255,14 +255,14 @@ nointerpolation float4 tex       : TEXCOORD0;
 - centroid
 	+ 三角形の重心補間あり。MSAA必須。トライアングルのエッジ（メッシュのエッジだけではない）でアンチかかる感じがあるが、精度あまいので、グラデがディザったりもするぞ。なので、その後ライン抽出とかやるとlinearより荒れる。
 - sample
-	+ ShaderModel4.1以降。MSAA必須。pixel中心ではなくsample点で値を取る。これ使った時点で、MSAAの全サンプルでpixelshaderが走る。(SV_SampleIndex読んだ時とかと同じように)。きれいー…なぜならuperSamplingだから。
+	+ ShaderModel4.1以降。MSAA必須。pixel中心ではなくsample点で値を取る。これ使った時点で、MSAAの全サンプル点についてfragmentShaderが走る。(SV_SampleIndex読んだ時とかと同じように)。高周波なシェーディングも綺麗ー…なぜならSuperSamplingだから！(順当に負荷が上がる)
 
 ## 複数の組み合わせが可能なもの
 - centroid noperspective
 	+ スクリーンスペース（centroid-adjusted affine）
 - centroid linear
 - sample noperspective
-	+ MSAA強制
+	+ SSAA強制ポスプロとか
 - sample linear
 
 
@@ -332,13 +332,13 @@ VertexOutput >> FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMANTIC
 シェーダ内で float isFrontVface = IS_FRONT_VFACE(cullFace, 1, 0); など分岐に使う
 
 ## SV_Coverage //Alpha to Coverge の出力先
-Unityにおいては、shaderのPassにAlphaToMask Onをつけておくことで、AlphaToCoverge機能がオンになる。coverge値は出力アルファが使われる。  
-さらにps_5_0だと、inoutにもできて、ピクセルシェーダ内で値を活用できるらしい  
+Unityにおいては、shaderのPassにAlphaToMask Onをつけておくことで、AlphaToCoverge機能がオンになる。coverge値はfragmentからの出力アルファ値が使われる。  
+さらにps_5_0だと、SV_Coverageをinoutにもできて、ピクセルシェーダ内で値を活用できるらしい  
 
 ## ddx_fine系
 ddx_fine(), ddy_fine()、これらは	ddx(), ddy()の高精度版。  
 SHADER_TARGET >= 45かつDirectX固有。Metalだと常にfineかも  
-ddx_fineは横2ドットの偏微分、ddy_fineは縦2ドットの偏微分になる。精度2倍！（4倍ではない）  
+ddxは2x2pixel内でひとつの偏微分値だが、ddx_fineは横2pixelでの偏微分、ddy_fineは縦2pixelでの偏微分になる。精度2倍！（4倍ではない）  
 
 ## MSAAバッファのセット
 MSAAバッファのサンプリングは UnityのAPIマクロに入っているのだが、テクスチャセットは何故かマクロから抜けている。  

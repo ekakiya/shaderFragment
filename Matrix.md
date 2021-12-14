@@ -306,7 +306,7 @@ Zf = Zfarクリッピングプレーン値
 　↓            //w成分にビュー空間でのZ値がはいってる。　//クリッピング空間の同次(homogenous) 座標 算出
 　↓
 {AUTO:ラスタライズ}____________________________________________________________________________________________________________
-　Z = posCS.z /pozCS.w //:パースペクティブ空間 > Zバッファ単位
+　Z = posCS.z /posCS.w //:パースペクティブ空間 > Zバッファ単位
 　↓        　↓		   //Zは、Znで0、Zfで1だがリニアカーブではなく、Zn付近に値幅の大半を使用して精度を稼ぐ 逆ガンマ的カーブになる。
 　↓        　↓		   //この時、zだけでなくx,yもwで割られ、x,yに関しては ここでパースペクティブ空間への変換が完了する。
 　↓        　↓		   //さらにxyそれぞれの画面解像度が掛けられ、ピクセル単位座標となる。 
@@ -319,7 +319,7 @@ Zf = Zfarクリッピングプレーン値
 　↓        float dist = GetDist(input.posCS.z);
 　↓                   = 1.0 / (_ZBufferParams.z * input.posCS.z + _ZBufferParams.w);
 　↓                   //GET:原点からの実寸距離 リニア値
-　↓
+　↓        　↓
 {AUTO:Zバッファ描き込み}_______________________________________________________________________________________________________
 　↓
 {ディファードシェーディングのライトパス or ポスプロ内}______________________________________________________________________________
@@ -327,14 +327,14 @@ Zf = Zfarクリッピングプレーン値
 　↓                                                                     ↓
 　float depth = Linear01Depth( depthSq);                                ↓
   ↓           = 1.0 / (_ZBufferParams.x * depthSq + _ZBufferParams.y);  ↓
-  ↓           //GET:原点からZfまでを0-1に正規化した、リニア値                ↓
+  ↓           //GET:原点からZfまでを0-1に正規化した、リニア値                 ↓
   ↓                                                                     ↓
   ↓                                               float dist = LinearEyeDepth( depthSq); 
   ↓                                                          = 1.0 / (_ZBufferParams.z * depthSq + _ZBufferParams.w);
   ↓                                                          = 1.0 / ((1-far/near)/far * depthSq + (far/near)/far); 
   ↓                                                          //GET:原点からの実寸距離 リニア値
   ↓
-  //ex. BRP-deferredでの座標変換 //SRP系においてはUNITY_MATRIX_I_VPを用意してシンプルに対応する手法が主流。座標変換の項を参照。
+  //ex. BRP-deferredでの座標変換 //SRP系においてはUNITY_MATRIX_I_VPを用意し、シンプルに対応する手法が主流。座標変換の項を参照。
 　i.ray = i.ray *( _ProjectionParams.z /i.ray.z);
 　float4 vpos = float4( i.ray *depth, 1.0);
 　↓			  //GET:頂点位置(ビュー空間 実寸)
