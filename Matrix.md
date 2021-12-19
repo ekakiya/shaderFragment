@@ -371,6 +371,82 @@ z = (d - Zn) /d  *  Zf / (Zf - Zn)
 
 
 ---
+# Unityの上下反転について
+[参考](https://docs.unity3d.com/Manual/SL-PlatformDifferences.html)  
+## UNITY_UV_STARTS_AT_TOP
+DirectX系ほか = 1  
+OpenGL系 = 0  
+
+## UV
+DirectX系は左上が(0,0)  
+OpenGl系は左下が(0,0)  
+
+## SrpCore/Common.hlslより
+```
+float4 ComputeClipSpacePosition(float2 positionNDC, float deviceDepth)
+{
+    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
+
+#if UNITY_UV_STARTS_AT_TOP
+    // Our world space, view space, screen space and NDC space are Y-up.
+    // Our clip space is flipped upside-down due to poor legacy Unity design.
+    // The flip is baked into the projection matrix, so we only have to flip
+    // manually when going from CS to NDC and back.
+    positionCS.y = -positionCS.y;
+#endif
+
+    return positionCS;
+}
+```
+
+## ShaderGraphLibrary/ShaderVariablesFunctions.hlslより
+```
+// UNITY_MATRIX_V defines a right-handed view space with the Z axis pointing towards the viewer.
+// This function reverses the direction of the Z axis (so that it points forward),
+// making the view space coordinate system left-handed.
+void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMatrix)
+{
+    viewMatrix = UNITY_MATRIX_V;
+    viewMatrix._31_32_33_34 = -viewMatrix._31_32_33_34;
+
+    projMatrix = UNITY_MATRIX_P;
+    projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
+}
+
+#if UNITY_REVERSED_Z
+    #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
+        //GL with reversed z => z clip range is [near, -far] -> should remap in theory but dont do it in practice to save some perf (range is close enough)
+        #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) max(-(coord), 0)
+    #else
+        //D3d with reversed Z => z clip range is [near, 0] -> remapping to [0, far]
+        //max is required to protect ourselves from near plane not being correct/meaningfull in case of oblique matrices.
+        #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) max(((1.0-(coord)/_ProjectionParams.y)*_ProjectionParams.z),0)
+    #endif
+#elif UNITY_UV_STARTS_AT_TOP
+    //D3d without reversed z => z clip range is [0, far] -> nothing to do
+    #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) (coord)
+#else
+    //Opengl => z clip range is [-near, far] -> should remap in theory but dont do it in practice to save some perf (range is close enough)
+    #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) (coord)
+#endif
+```
+
+## 観察
+- Unity的には、左下が(0,0)。DirectXでも変わらず。画像データ内部も皆 左下が(0,0)。
+- ただしRenderTextureは DirectX系では左上が(0,0)。
+- また、ClipSpaceは上下反転してる。　NDC(Homogeneous normalized device coordinates)はしてなさそう？
+
+- Dx11でLoadした場合、左下が(0,0)。コンパイル後のコードでもld_indexable(0,0)
+- DdxをPSで保存して持ってきても（再コンバートしてない…ハズ）、Loadすると左下が(0,0)。
+
+## 推論
+- つまり、基本OpenGL系で統一してあるが、最後に描き出す時に、自動的にプラットフォームに応じた反転をする。という設計。
+- これを（時代を感じる）ClipSpace変換マトリクスに焼き込んだ形で 行っているので、それより後の処理（ポスプロだとか、RenderTexture描いていじってだとか）では手動対処が必要になっている、という事。
+.  
+- VATをmorton配列で焼いておき、Loadして使う、といったケースでは、左下が(0,0)で考えてよさそうかな。
+
+
+---
 # C#上で MatrixからPosition, Rotation, Scaleの復元をしたい（不具合あり）
 ```
 Vector4 vX = new Vector4(1, 0, 0, 0);

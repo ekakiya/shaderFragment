@@ -2,6 +2,12 @@
 //				
 //////////////////////////////////////////////////////////////////////////////
 
+# Shader Lab
+ShaderObjectは\*.shaderファイルとして用意し、そのコードはShader Labを介して各種描画API用シェーダコードに変換される
+[参考](https://docs.unity3d.com/2020.3/Documentation/Manual/shader-writing.html)  
+
+
+---
 # RenderQueueの区分
 ```
 ----------------{0000}--------------------------------------------<
@@ -26,22 +32,21 @@ _CullMode =
 	Back   //表面のみ描画
 ```
 
-## デプス比較テスト
+## デプステスト
 ```
 ZTest [_ZTest]
 
-直接指定する際は以下のキーワード: Less | Greater | LEqual | GEqual | Equal | NotEqual | Always
-
 _ZTest =
+直接指定する際は以下のキーワード: Less | Greater | LEqual | GEqual | Equal | NotEqual | Always
   |   |   |
 0 [-------]	Disabled	 //常に描く
 1          	Never
 2 [-]		Less
 3    [+]	Equal
-4 [---+]	LesEqual	 //手前なら描く。デフォルト
+4 [---+]	LEqual	 //手前なら描く。デフォルト //LesEqual
 5       [-]	Greater		 //奥なら描く
 6 [-]   [-]	NotEqual
-7    [+---]	GreaterEqual
+7    [+---]	GEqual //GreaterEqual
 8 [---+---]	Always
   |   |   |
 ```
@@ -50,7 +55,7 @@ _ZTest =
 ```
 ZWrite [_ZWrite]
 
-_ZWrite
+_ZWrite = 
 	On    //Zバッファに描き込む
 	Off   //Zバッファに描き込まない
 ```
@@ -60,14 +65,14 @@ _ZWrite
 BlendOp [_BlendOp]
 Blend   [_SrcBlend] [_DstBlend]
 
-_BlendOp
+_BlendOp = 
 	Add                        // SrcColor *_SrcBlend + DstColor *_DstBlend
 	Sub (Subtract)             // DstColor *_DstBlend	- SrcColor *_SrcBlend
 	RevSub (ReverseSubtract)   // SrcColor *_SrcBlend - DstColor *_DstBlend	
 	Min                        // Min( SrcColor, DstColor)
 	Max                        // Max( SrcColor, DstColor)
 
-_BlendMode (= _SrcBlend, _DstBlend)
+_BlendMode (= _SrcBlend, _DstBlend) =
 	Zero              // 0                  :  (0,0,0,0)
 	One	              // 1                  :  (1,1,1,1)
 	DstColor          // 画面の色	            : d(R,G,B,A)
@@ -81,23 +86,117 @@ _BlendMode (= _SrcBlend, _DstBlend)
 	OneMinusSrcAlpha  // 反転 シェーダ出力アルファ  :	  (1,1,1,1) - s(A,A,A,A)
 ```
 
-カラーとアルファそれぞれに 違うブレンド式を設定する
+カラーとアルファそれぞれに 違うブレンド式を指定する
 ```
 BlendOp [カラー_BlendOp] , [アルファ_BlendOp]
 Blend   [カラー_SrcBlend] [カラー_DstBlend] , [アルファ_SrcBlend] [アルファ_DstBlend]
 ```
 
-MRTごとにブレンド式を設定する
+MRTごとにブレンド式を指定する
 ```
 Blend 0 ～
 Blend 1 ～
 ```
 
+ex.不透明
+ex.半透明(ストレート)
+ex.半透明(PreMultiply利用により半透明と加算を両立)
+ex.加算
+ex.乗算
+ex.乗算2倍
+
+
+## ステンシルテスト
+```
+Stencil
+{
+	Ref [_StencilReference]
+	Readmask [_StecilBitmask_Read]	//optional 
+	Writemask [_StencilBitmask_Write]	//optional 
+	Comp [_StencilComparison]
+	Pass [_StencilOperation_Pass]
+	Fail  [_StencilOperation_Fail]	//optional
+	ZFail [_StencilOperation_ZFail]	//optional
+}
+
+_StencilReference = 
+適用する数値。リファレンス値 (8bit bitmask, 0 - 255)
+
+_StencilBitmask_Read = 
+リファレンス値を描き込み先のステンシル値と比較する際に適用するビットマスク (8bit bitmask, 0 - 255)
+
+_StencilBitmask_Write = 
+リファレンス値を描き込む際に適用するビットマスク (8bit bitmask, 0 - 255)
+
+_StencilComparison = 
+リファレンス値と描き込み先のステンシル値を比較する為の演算子。
+比較(ステンシルテスト)をパスした場合のみ、fragmentシェーダを実行し、カラー,depthバッファへの描き込みを行う。
+また、ステンシルバッファについては、同テストの結果に応じてPass,Fail,ZFailで指定した描き込み操作を行う。
+  |   |   |
+0 [-------]	Disabled
+1          	Never
+2 [-]		Less
+3    [+]	Equal
+4 [---+]	LEqual	
+5       [-]	Greater
+6 [-]   [-]	NotEqual
+7    [+---]	GEqual
+8 [---+---]	Always //常に描く。デフォルト
+  |   |   |
+
+ _StencilOperation = 
+ステンシルテストの結果に応じて、描き込み先のステンシル値に、ここで指定した描き込み操作を行う。
+比較(ステンシルテスト)をパスした場合はPass、しなかった場合はFail、ステンシルテストはパスしたがデプステストにはパスしなかった場合はZFailの操作を行う。
+0 Keep //描き込まない。デフォルト
+1 Zero //0でクリアする
+2 Replace //リファレンス値を描き込む
+3 IncrSat //描き込み先の値を1大きくする。255なら255のまま //IncrementSaturate
+4 DecSat //描き込み先の値を1小さくする。0なら0のまま //DecremenetSaturate
+5 Invert //描き込み先の数値をbitmaskとして全bit反転する
+6 IncWrap //描き込み先の値を1大きくする。255なら0にする //IncrementWrap
+7 DecWrap //描き込み先の値を1小さくする。0なら255にする //DecrementWrap
+```
+
+ポリゴン面が表か裏かに応じて、違う内容のステンシルテストを行う
+```
+表面  CompFront, PassFront, FailFront, ZFailFront
+裏面  CompBack, PassBack, FailBack, ZFailBack 
+```
+
+ex.ステンシルテストは行わず、ステンシルバッファには4を描き込む。
+```
+Stencil
+{
+	Ref 4
+	Pass Replace
+}
+```
+
+ex.描き込み先のステンシル値が4だった場合のみ、当該ピクセルに描き込む。
+```
+Stencil
+{
+	Ref 4
+	Comp Equal
+}
+```
+
+ex.描き込み先の第3bitフラグが立っていた場合のみ、当該ピクセルに描き込む。他のビットの状態は問わない
+```
+// value   4 = 0000 0100
+// bitmask 4 = xxxx x1xx
+
+Stencil
+{
+	Ref 4
+	Readmask 4
+	Comp Equal
+}
+```
+
 
 ---
-# Shader Lab
-[参考](https://docs.unity3d.com/2020.3/Documentation/Manual/shader-writing.html)  
-## シェーダーモデル設定
+# シェーダーモデル設定
 ```
 #pragma target 4.5
 ```
@@ -125,8 +224,10 @@ Texture2DMS<float4, MSAA_SAMPLES> _CameraMsaaAttachment;
 Texture2DMS<float4> _CameraMsaaAttachment;
 ```
 
-## シェーダバリアント設定
-### 基本の書き方
+
+---
+# シェーダバリアント設定
+## 基本的な書き方
 1．Properties {} 内で
 ```
 [KeywordEnum(_ON,_SPECIAL)]
@@ -205,7 +306,8 @@ Stencil
 ```
 
 
-## HLSLコードがインクルードされる順序
+---
+# HLSLコードがインクルードされる順序
 Shader内にHLSLINCLUDEしたコードと、Shader/SubShader/Pass内のHLSLPROGRAMに書いたコードの順序関係について確認した。ついでに#pragma multi_compileとの順序関係も確認。
 
 - そもそも同一HLSLスニペット内では、コード全部inline化した時の前後関係が そのまま順序となる。
@@ -218,194 +320,3 @@ Shader内にHLSLINCLUDEしたコードと、Shader/SubShader/Pass内のHLSLPROGR
 .  
 - #defineで指定したフラグによるifdef分岐は、コードの前後関係に応じて適用される。
 　よって、SubShader内の#defineによる分岐は HLSLINCLUDE内のコードに適用されない。
-
-
----
-# CBuffer
-## Render Layer
-貴重なUnityPerDrawプロパティ。使っていなければ、インスタンス単位のIDとか仕込むのに使えて便利。  
-Cullingには使われず、DrawRenderer時にbitmaskでマスクされる（SRPの設定に拠る）。0にするとさすがに描かれないので注意。  
-  
-C#側
-```
-MeshRenderer mr = GetComponent<MeshRenderer>();
-mr.renderingLayerMask = theNumber;
-```
-
-Shader側
-```
-uint theNumber = asuint(unity_RenderingLayer.x);
-```
-
-
----
-# vertexからfragmentに渡すプロパティ値の補完設定
-[参考](https://docs.microsoft.com/ja-jp/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct)  
-ex.  
-```
-nointerpolation float4 tex       : TEXCOORD0;
-```
-
-- linear
-	+ 無指定だとこれ。普通のリニア補間
-- nointerpolation
-	+ 補間なし。たぶん、トライアングル0番？頂点の値だけが来てる。
-- noperspective
-	+ パース補正なし（つまりスクリーンスペース)のリニア補間
-- centroid
-	+ 三角形の重心補間あり。MSAA必須。トライアングルのエッジ（メッシュのエッジだけではない）でアンチかかる感じがあるが、精度あまいので、グラデがディザったりもするぞ。なので、その後ライン抽出とかやるとlinearより荒れる。
-- sample
-	+ ShaderModel4.1以降。MSAA必須。pixel中心ではなくsample点で値を取る。これ使った時点で、MSAAの全サンプル点についてfragmentShaderが走る。(SV_SampleIndex読んだ時とかと同じように)。高周波なシェーディングも綺麗ー…なぜならSuperSamplingだから！(順当に負荷が上がる)
-
-## 複数の組み合わせが可能なもの
-- centroid noperspective
-	+ スクリーンスペース（centroid-adjusted affine）
-- centroid linear
-- sample noperspective
-	+ SSAA強制ポスプロとか
-- sample linear
-
-
----
-# SRP batcher対応ルール
-- UnityPerDraw, UnityPerMaterialが仕様に沿って定義されていること。
-- TextureやStructuredBufferは これに含まれない。ただしtextureSizeプロパティとかを使う場合 それらは含まれる。
-- 以下の 1と2両方を満たしたときに、batcher対応からはずれる。
-	+ 1. CBUFFER_START(UnityPerMaterial), CBUFFER_END　で挟んでいないところに定数が定義されていて
-	+ 2. その定数がProperties内で同名定義されている
-- materialPropertyBlock使った時、batcher対応からはずれる。
-- 同一シェーダー内のPass違いでCBUFFERの内容変えたとき、batcher対応からはずれる。
-
-
----
-# Unity Gpu Instancing
-所謂GPUinstancingバッチは、SRP batcherが有効の場合 使用されない。  
-ScriptからのGPUinstancing描画はSRP batcherと同時使用可能だが、PerInstancingプロパティはSRP batcherと排他。  
-なので、多量に色違いオブジェクトを描くなどのケースでは、使い分けるか、自前で DOTSinstancing的な手法  
-(InstanceIDに対応したArrayを用意してComputeBufferにセットし、シェーダで これを読む)を実装する必要がある。  
-## マテリアルインスタンス対応
-- マテリアルのGPU Instance設定をオン
-
-## 頂点シェーダ対応
-- VertexInputに、UNITY_VERTEX_INPUT_INSTANCE_IDを記載			//GPUインスタンス用IDが入る。
-- vertex shader冒頭で、UNITY_SETUP_INSTANCE_ID(input);を記載	//UNITY_MATRIX_Mなどが、GPUインスタンス用のCBUFFERからのマトリクスに上書きされる。
-
-## ピクセルシェーダ対応(optional)
-- vertex shader冒頭で、UNITY_SETUP_INSTANCE_ID(input);に続いて UNITY_TRANSFER_INSTANCE_ID(input, output);を記載		//fragment shaderにGPUインスタンス用IDを受け渡す。
-- VertexOutputに、UNITY_VERTEX_INPUT_INSTANCE_IDを記載																//fragment shaderにGPUインスタンス用IDを受け渡す。
-- fragment shader冒頭で、UNITY_SETUP_INSTANCE_ID(input);を記載。													//GPUインスタンス用IDが入る。
-
-## GPU Instance対応プロパティ(optional)
-・マテリアルプロパティ宣言時、インスタンス対応を宣言
-```
-UNITY_INSTANCING_BUFFER_START(PerInstance)
-UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
-UNITY_INSTANCING_BUFFER_END(PerInstance)
-```
-
-・シェーダー内で、値を取得
-```
-float4 matColor = UNITY_ACCESS_INSTANCED_PROP(PerInstance, _Color);
-```
-
-
-・スプライトの場合は
-```
-UNITY_INSTANCING_BUFFER_START(PerDrawSprite)
-```
-
-
----
-# ちょっとマイナーなシェーダ命令
-[この辺](https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/dx-graphics-hlsl-semantics)も使える(DirectX固有のものを使った場合、Unityの機種互換サポートは死ぬ)。  
-  
-## VERTEXID_SEMANTIC //頂点番号
-```
-VertexInput  >> uint vertexID : VERTEXID_SEMANTIC
-```
-SRP系では、フルスクリーンポスプロを1triangleで描く時に、vertexIDを使ってGetFullScreenTriangleVertexPosition( vertexID, UNITY_RAW_FAR_CLIP_VALUE );などして、画面を覆うトライアングル座標とUVを提供している。
-
-## FRONT_FACE_SEMANTIC //表裏判定
-```
-VertexOutput >> FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMANTIC
-```
-シェーダ内で float isFrontVface = IS_FRONT_VFACE(cullFace, 1, 0); など分岐に使う
-
-## SV_Coverage //Alpha to Coverge の出力先
-Unityにおいては、shaderのPassにAlphaToMask Onをつけておくことで、AlphaToCoverge機能がオンになる。coverge値はfragmentからの出力アルファ値が使われる。  
-さらにps_5_0だと、SV_Coverageをinoutにもできて、ピクセルシェーダ内で値を活用できるらしい  
-
-## ddx_fine系
-ddx_fine(), ddy_fine()、これらは	ddx(), ddy()の高精度版。  
-SHADER_TARGET >= 45かつDirectX固有。Metalだと常にfineかも  
-ddxは2x2pixel内でひとつの偏微分値だが、ddx_fineは横2pixelでの偏微分、ddy_fineは縦2pixelでの偏微分になる。精度2倍！（4倍ではない）  
-
-## MSAAバッファのセット
-MSAAバッファのサンプリングは UnityのAPIマクロに入っているのだが、テクスチャセットは何故かマクロから抜けている。  
-SHADER_TARGET >= 45かつDirectXなら  
-```
-Texture2DMS<type> textureName  //MSAAテクスチャをsample番号指定Loadできる形でセット
-Texture2DMSArray<type> textureName  //MSAAテクスチャアレイをsample番号指定Loadできる形でセット
-```
-SHADER_TARGET < 45でも、以下のコマンドについては使用可能  
-```
-Texture2DMS<type,sampleCount> textureName  //MSAAテクスチャをsample番号指定Loadできる形でセット //MSAAサンプル数を明示的に指定
-Texture2DArray<type> textureName  //普通のテクスチャアレイをセット
-```
-セットしたテクスチャは、LOAD_TEXTURE2D_MSAAなどのマクロでサンプリング可能。
-[参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl#L146)  
-
----
-# Consrevative Depth Test/Write関連
-## 早期DepthTestの強制
-[参考1](https://docs.microsoft.com/ja-jp/windows/win32/direct3dhlsl/sm5-attributes-earlydepthstencil), [参考2](https://www.gamedev.net/forums/topic/630218-conservative-depth-output-1-zw-depth-earlydepthstencil-and-early-z/), [参考3](https://forum.unity.com/threads/does-unity-2018-understand-the-sv_depthgreater-semantic.583135/)  
-```
-[earlydepthstencil]
-float4 frag(){}
-```
-frag前のearly Z Test強制だけでなく、ZWriteも同時に行われる。  
-後からfrag内でSV_DEPTHを出力したり、clipしても、早期に描き込んだZ値を改める事はできない。  
-
-### 実例
-自前のCommonOpaqueDepthOnly(不透明まとめ描き)シェーダに使ってみたら、逆に0.2ms程度遅くなったので やめといた。  
-また、Depthをfragmentからいじらないシェーダーは、GPU判断でearlyDepthTest行われている事が多いと思われる。  
-
-
-## Consrevative Depth
-以下のようなSVをfragから出力することで、frag後には その値でDepthTest,Writeを行うが、early Z Testも行ってくれる。  
-DxShaderModel5.0以降 = pragma4.5必要。  
-VfxGraph - HDRPのパーティクルなどでも活用されている。あとUE4のWorldPossitionOffset（奥にしかシフトできない制限つきpixelオフセット）。  
-```
-float x :SV_DepthLessEqual
-float x :SV_DepthGreaterEqual
-```
-
-### 制限
-SV_POSITIONの入力に noperspective centroid （かつ MSAAsample系入力の不使用）を求められる。centroidだけでも通るが、はたして…。  
-というか、基本的に vertexから出力したdepthと fragからposCS.zを出力した値が、厳密には一致しない。狂った値になる、という感じではないのだけど…。  
-この為、Z Pre pass戦略（重いfragをZTest Equalで後書き）との合体がむずかしい。 noperspective centroidにするとワイヤー上だけdepth一致するのだけど。  
-```
-Interpolation mode for PS input position must be linear_noperspective_centroid or linear_noperspective_sample when outputting oDepthGE or oDepthLE 
-and not running at sample frequency (which is forced by inputting SV_SampleIndex or declaring an input linear_sample or linear_noperspective_sample). 
-```
-
-
----
-# Add Custom Clipping Plane
-参考1: https://msdn.microsoft.com/ja-jp/library/ee418355(v=vs.85).aspx ,  
-[参考2](https://docs.microsoft.com/en-us/windows/desktop/direct3dhlsl/dx-graphics-hlsl-function-syntax)  
-これで凹み投影デカール（でも手前の壁には隠れる）とかを表現しよう  
-
-VertexOutputに
-```
-float  clip : SV_ClipDistance0; //[option]クリッピングプレーンの追加。
-```
-  
-vertex shaderで
-```
-output.clip = dot(posWS, float4(0,1,0,1.5)); //[option]クリッピングプレーンの追加。
-```
-- プレーンの定義は： float4(x,y,z,l) //(x,y,z)ベクトルに鉛直な平面、原点からの距離l。
-- 複数足せる。総数はUnityシェーダ記述より外で設定されてる。
-- DirectX10以降
-
