@@ -66,3 +66,20 @@ uint  GI   : SV_GroupIndex			//シェーダー側の	スレッド番号(n)		= (0
 	GroupMemoryBarrierWithGroupSync();	//グループ内の全スレッドを ここで同期待ち
 }
 ```
+
+---
+# 実際には、CSで画像処理するなら、mortonレイアウトを使うのが良い
+SRP.coreの[DecodeMorton2D](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl#L62#L65)とか利用しよう。  
+
+## Shader側
+```
+#define blocksize 16
+
+[numthreads((blocksize*blocksize)), 1, 1)]
+void CSMain(uint GTid : SV_GroupThreadID, uint2 Gid : SV_GroupID)
+{ 
+  //.
+  uint2 pixelPosSCS = Gid * blocksize + DecodeMorton2D(GTid);
+  ...
+
+```
