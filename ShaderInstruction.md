@@ -12,8 +12,8 @@
 - 同一シェーダー内のPass違いでCBUFFERの内容変えたとき、batcher対応からはずれる。
 
 ## UnityPerDrawのレイアウト
-SRPbatcherの[Blog記事](https://blog.unity.com/ja/technology/srp-batcher-speed-up-your-rendering)公開当時のもの + 2020.2あたりで追加された環境マップ拡張系
-ブロックごとに取捨選択可。一部 floatではなくhalf指定可。
+SRPbatcherの[Blog記事](https://blog.unity.com/ja/technology/srp-batcher-speed-up-your-rendering)公開当時のもの + 2020.2あたりで追加された環境マップ拡張系  
+ブロックごとに取捨選択可。一部 floatではなくhalf指定可。  
 ```
 //. Space
 ///オブジェクト座標系
@@ -36,10 +36,10 @@ float4   unity_RenderingLayer;	// x = asFloat(uint Renderer.renderingLayerMask)
 float4 unity_SHAr;	// xyz = L1の赤成分 // w = L0の赤成分 // (normal.xyz, 1.0)とdotして使う	//h可
 float4 unity_SHAg;	// xyz = L1の緑成分 // w = L0の緑成分 //h可
 float4 unity_SHAb;	// xyz = L1の青成分 // w = L0の青成分 //h可
-float4 unity_SHBr;	// L2の赤成分		// (normal.xyzz * normal.yzzx)とdotして使う	//h可
-float4 unity_SHBg;	// L2の緑成分		//h可
-float4 unity_SHBb;	// L2の青成分		//h可
-float4 unity_SHC;	// L2の残り成分	// (normal.x * normal.x - normal.y * normal.y)と掛けて使う,単色	//h可
+float4 unity_SHBr;	// xyzw = L2の赤成分	// (normal.xyzz * normal.yzzx)とdotして使う	//h可
+float4 unity_SHBg;	// xyzw = L2の緑成分	//h可
+float4 unity_SHBb;	// xyzw = L2の青成分	//h可
+float4 unity_SHC;	// xyz = L2の残り成分	// (normal.x * normal.x - normal.y * normal.y)と掛けて使う	//h可
 
 //. ProbeVolume
 ///ライトプローブProxyVolume(LPPV)の設定
