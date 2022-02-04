@@ -113,22 +113,25 @@ Blend SrcAlpha OneMinusSrcAlpha , One One
 ! ex.半透明(PreMultiply利用により半透明と加算を両立)
 Blend One OneMinusSrcAlpha , One One
 	// RGB = SrcColor.rgb *1 + DstColor.rgb *(1 - SrcColor.a)
-	// A   = SrcColor.a + DstColor.a
+	// A   = SrcColor.a　*1 + DstColor.a *1
 ```
 ```diff
 ! ex.加算
-Blend One One
-	// RGBA = SrcColor.rgba *1 + DstColor.rgba *1
+Blend One One , Zero One
+	// RGB = SrcColor.rgb *1 + DstColor.rgb *1
+	// A   = SrcColor.a　*0 + DstColor.a *1
 ```
 ```diff
 ! ex.乗算
-Blend DstColor Zero
-	// RGBA = SrcColor.rgba *DstColor.rgba + DstColor.rgba *0
+Blend DstColor Zero , Zero One
+	// RGB = SrcColor.rgb *DstColor.rgb + DstColor.rgb *0
+	// A   = SrcColor.a　*0 + DstColor.a *1
 ```
 ```diff
 ! ex.乗算2倍
-Blend DstColor SrcColor
-	// RGBA = SrcColor.rgba *DstColor.rgba + DstColor.rgba *SrcColor.rgba
+Blend DstColor SrcColor , Zero One
+	// RGB = SrcColor.rgb *DstColor.rgb + DstColor.rgb *SrcColor.rgb
+	// A   = SrcColor.a　*0 + DstColor.a *1
 ```
 
 
