@@ -107,7 +107,7 @@ Blend One Zero
 ! ex.半透明(ストレート)
 Blend SrcAlpha OneMinusSrcAlpha , One One
 	// RGB = SrcColor.rgb *SrcColor.a + DstColor.rgb *(1 - SrcColor.a)
-	// A   = SrcColor.a + DstColor.a
+	// A   = SrcColor.a *1 + DstColor.a *1
 ```
 ```diff
 ! ex.半透明(PreMultiply利用により半透明と加算を両立)
