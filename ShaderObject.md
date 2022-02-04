@@ -5,8 +5,8 @@
 # Shader Lab
 ShaderObjectは\*.shaderファイルとして用意し、そのコードはShader Labを介して各種描画API用シェーダコードに変換される
 [参考](https://docs.unity3d.com/2020.3/Documentation/Manual/shader-writing.html)  
-
-
+  
+  
 ---
 # RenderQueueの区分
 ```
@@ -19,7 +19,7 @@ ShaderObjectは\*.shaderファイルとして用意し、そのコードはShade
 ----------------{5000}--------------------------------------------<
 ```
 
-
+.    
 ---
 # シェーダState系オプション
 ## 表裏カリング
@@ -98,12 +98,38 @@ Blend 0 ～
 Blend 1 ～
 ```
 
-ex.不透明
-ex.半透明(ストレート)
-ex.半透明(PreMultiply利用により半透明と加算を両立)
-ex.加算
-ex.乗算
-ex.乗算2倍
+```
+! ex.不透明
+Blend One Zero
+	// RGBA = SrcColor.rgba *1 + DstColor.rgba *0
+```
+```
+! ex.半透明(ストレート)
+Blend SrcAlpha OneMinusSrcAlpha , One One
+	// RGB = SrcColor.rgb *SrcColor.a + DstColor.rgb *(1 - SrcColor.a)
+	// A   = SrcColor.a + DstColor.a
+```
+```
+! ex.半透明(PreMultiply利用により半透明と加算を両立)
+Blend One OneMinusSrcAlpha , One One
+	// RGB = SrcColor.rgb *1 + DstColor.rgb *(1 - SrcColor.a)
+	// A   = SrcColor.a + DstColor.a
+```
+```
+! ex.加算
+Blend One One
+	// RGBA = SrcColor.rgba *1 + DstColor.rgba *1
+```
+```
+! ex.乗算
+Blend DstColor Zero
+	// RGBA = SrcColor.rgba *DstColor.rgba + DstColor.rgba *0
+```
+```
+! ex.乗算2倍
+Blend DstColor SrcColor
+	// RGBA = SrcColor.rgba *DstColor.rgba + DstColor.rgba *SrcColor.rgba
+```
 
 
 ## ステンシルテスト
@@ -163,8 +189,8 @@ _StencilComparison =
 裏面  CompBack, PassBack, FailBack, ZFailBack 
 ```
 
-ex.ステンシルテストは行わず、ステンシルバッファには4を描き込む。
 ```
+! ex.ステンシルテストは行わず、ステンシルバッファには4を描き込む。
 Stencil
 {
 	Ref 4
@@ -172,8 +198,8 @@ Stencil
 }
 ```
 
-ex.描き込み先のステンシル値が4だった場合のみ、当該ピクセルに描き込む。
 ```
+! ex.描き込み先のステンシル値が4だった場合のみ、当該ピクセルに描き込む。
 Stencil
 {
 	Ref 4
@@ -181,8 +207,8 @@ Stencil
 }
 ```
 
-ex.描き込み先の第3bitフラグが立っていた場合のみ、当該ピクセルに描き込む。他のビットの状態は問わない
 ```
+! ex.描き込み先の第3bitフラグが立っていた場合のみ、当該ピクセルに描き込む。他のビットの状態は問わない
 // value   4 = 0000 0100
 // bitmask 4 = xxxx x1xx
 
@@ -217,8 +243,8 @@ target指定はSHADER_TARGETの足切りに使われるので、5.0を指定し�
 target 5.0指定　＞　PCでSM5.0でコンパイル　＞　SHADER_TARGET=45	など。  
 
 ### targetによって文法が変わる事もまれにある。
-ex. target4.5以前だとMSAAテクスチャのバインド時にサンプル数の指定がいるが、4.5移行だといらない
 ```
+! ex. target4.5以前だとMSAAテクスチャのバインド時にサンプル数の指定がいるが、4.5移行だといらない
 Texture2DMS<float4, MSAA_SAMPLES> _CameraMsaaAttachment;
 
 Texture2DMS<float4> _CameraMsaaAttachment;
