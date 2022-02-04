@@ -11,7 +11,7 @@
 - materialPropertyBlock使った時、batcher対応からはずれる。
 - 同一シェーダー内のPass違いでCBUFFERの内容変えたとき、batcher対応からはずれる。
 
-##UnityPerDrawのレイアウト
+## UnityPerDrawのレイアウト
 SRPbatcherの[Blog記事](https://blog.unity.com/ja/technology/srp-batcher-speed-up-your-rendering)公開当時のもの + 2020.2あたりで追加された環境マップ拡張系
 ブロックごとに取捨選択可。一部 floatではなくhalf指定可。
 ```
