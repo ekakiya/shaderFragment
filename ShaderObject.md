@@ -98,34 +98,34 @@ Blend 0 ～
 Blend 1 ～
 ```
 
-```
+```diff
 ! ex.不透明
 Blend One Zero
 	// RGBA = SrcColor.rgba *1 + DstColor.rgba *0
 ```
-```
+```diff
 ! ex.半透明(ストレート)
 Blend SrcAlpha OneMinusSrcAlpha , One One
 	// RGB = SrcColor.rgb *SrcColor.a + DstColor.rgb *(1 - SrcColor.a)
 	// A   = SrcColor.a + DstColor.a
 ```
-```
+```diff
 ! ex.半透明(PreMultiply利用により半透明と加算を両立)
 Blend One OneMinusSrcAlpha , One One
 	// RGB = SrcColor.rgb *1 + DstColor.rgb *(1 - SrcColor.a)
 	// A   = SrcColor.a + DstColor.a
 ```
-```
+```diff
 ! ex.加算
 Blend One One
 	// RGBA = SrcColor.rgba *1 + DstColor.rgba *1
 ```
-```
+```diff
 ! ex.乗算
 Blend DstColor Zero
 	// RGBA = SrcColor.rgba *DstColor.rgba + DstColor.rgba *0
 ```
-```
+```diff
 ! ex.乗算2倍
 Blend DstColor SrcColor
 	// RGBA = SrcColor.rgba *DstColor.rgba + DstColor.rgba *SrcColor.rgba
@@ -189,7 +189,7 @@ _StencilComparison =
 裏面  CompBack, PassBack, FailBack, ZFailBack 
 ```
 
-```
+```diff
 ! ex.ステンシルテストは行わず、ステンシルバッファには4を描き込む。
 Stencil
 {
@@ -198,7 +198,7 @@ Stencil
 }
 ```
 
-```
+```diff
 ! ex.描き込み先のステンシル値が4だった場合のみ、当該ピクセルに描き込む。
 Stencil
 {
@@ -207,7 +207,7 @@ Stencil
 }
 ```
 
-```
+```diff
 ! ex.描き込み先の第3bitフラグが立っていた場合のみ、当該ピクセルに描き込む。他のビットの状態は問わない
 // value   4 = 0000 0100
 // bitmask 4 = xxxx x1xx
@@ -243,7 +243,7 @@ target指定はSHADER_TARGETの足切りに使われるので、5.0を指定し�
 target 5.0指定　＞　PCでSM5.0でコンパイル　＞　SHADER_TARGET=45	など。  
 
 ### targetによって文法が変わる事もまれにある。
-```
+```diff
 ! ex. target4.5以前だとMSAAテクスチャのバインド時にサンプル数の指定がいるが、4.5移行だといらない
 Texture2DMS<float4, MSAA_SAMPLES> _CameraMsaaAttachment;
 

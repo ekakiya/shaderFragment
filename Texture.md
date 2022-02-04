@@ -6,8 +6,8 @@
 ## GraphicsFormat指定でRenderTexture作成
 SRP.coreに用意された RTHandleクラスを使う事で、間接的に この手法を取れるが、他にも色んな機能が付いてきてしまう。  
 シンプルにGraphicsFormat指定で生成する場合は以下。  
-ex.
-```
+```diff
+! ex.
 RenderTexture _RtColor = new RenderTexture(k_RtColor_width, k_RtColor_height, (int)DepthBits.None, GraphicsFormat.R16G16B16A16_SFloat)
 {
 	hideFlags = HideFlags.HideAndDontSave,
@@ -75,8 +75,8 @@ R16 = 28,				// R16_UNORM
 # Textureインポート時に何かやる
 [参考](https://github.com/keijiro/unity-dither4444/blob/master/Assets/Editor/TextureModifier.cs)
 ## 基本
-ex.
-```
+```diff
+! ex.
 public sealed partial class TextureImportProcessor : AssetPostprocessor
 {
 	void OnPreprocessTexture()
@@ -108,8 +108,8 @@ public sealed partial class TextureImportProcessor : AssetPostprocessor
 
 ## ComputeShader利用
 Resourcesにcomputeファイル置いて使っています…。  
-ex.
-```
+```diff
+! ex.
 ComputeShader cs = (ComputeShader)Resources.Load("CsExtendDistanceField");
 
 RenderTexture _RtCompute = new RenderTexture(texWidth, texHeight, 0, RenderTextureFormat.ARGBFloat);
@@ -138,8 +138,8 @@ TextureのMipmap限界レベルを、生成時にスクリプトから設定で�
 new Texture2D(width:256, height:256, textureFormat:TextureFormat.ARGB32, mipCount:3, linear:true)
 ```
 
-ex.
-```
+```diff
+! ex.
 public static Texture2D CreateLimitedMipmapsTexture(Texture2D sourceTexture, TextureFormat format, int mipmapCount, bool isLinear, int anisoLevel, FilterMode filterMode)
 {
 	var texturePath = AssetDatabase.GetAssetPath(sourceTexture);

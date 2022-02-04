@@ -116,8 +116,8 @@ fvoid rag(
 ---
 # vertexからfragmentに渡すSemanticの補完設定
 [参考](https://docs.microsoft.com/ja-jp/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct)  
-ex.  
-```
+```diff
+! ex.
 nointerpolation float4 tex       : TEXCOORD0;
 ```
 
