@@ -320,3 +320,12 @@ Shader内にHLSLINCLUDEしたコードと、Shader/SubShader/Pass内のHLSLPROGR
 .  
 - #defineで指定したフラグによるifdef分岐は、コードの前後関係に応じて適用される。
 　よって、SubShader内の#defineによる分岐は HLSLINCLUDE内のコードに適用されない。
+
+
+---
+# シェーダコンパイラの警告を無視する
+コンパイラによく怒られがちな[warning](https://docs.microsoft.com/ja-jp/windows/win32/direct3dhlsl/hlsl-errors-and-warnings)を抑制する。
+```
+#pragma warning (disable : 3571) // pow使ったとき、入れた値が正の数だと証明できないと注意されるやつ。証明するのが面倒臭い事が多い
+#pragma warning (disable : 4008) // NaNが欲しくて0.0/0.0したり、INFが欲しくて1.0/0.0したりすると注意されるやつ。意図してやっている時は抑制してしまおう
+```

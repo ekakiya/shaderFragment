@@ -53,7 +53,7 @@ RWTexture2D<float4> Result; //出力先
 
 #define blocksize 8
 #define groupthreads (blocksize*blocksize)
-groupshared float4 accum[groupthreads];		//スレッド間共有メモリ >> accum[GI] >>float5にしてバンク衝突を避けた方が2倍速いぞ
+groupshared float4 accum[groupthreads];		//スレッド間共有メモリ >> accum[GI] >>float5なstruct作ってバンク衝突を避けた方が2倍速いぞ
 
 [numthreads(blocksize, blocksize, 1)]
 void CSMain(

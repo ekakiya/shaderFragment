@@ -49,7 +49,7 @@ float outDepth = (outDepthDiff.x > outDepthDiff.y)? outDepthMin : outDepthMax;
 #pragma warning (disable : 4008) // I div by zero for Nan, to clip vertex!
 
 ...
-output.posCS = 1.0 / 0.0; //NaNを入れることでクリップ
+output.posCS = 0.0 / 0.0; //NaNを入れることでクリップ
 ```
 
 
