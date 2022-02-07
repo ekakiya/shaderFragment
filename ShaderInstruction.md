@@ -145,10 +145,10 @@ vertexShaderへの入力
 ```
 struct VertexInput
 {
-	float4 posOS	 : POSITION;	//頂点位置
+	float4 posOS	 : POSITION;	//頂点位置  //optional
 	float3 normalOS  : NORMAL;		//法線ベクトル  //optional
 	float4 tangentOS : TANGENT;		//タンジェントベクトル  //optional
-	float4 uv0       : TEXCOORD0～;	//UVなど汎用  //optional
+	float4 uv0       : TEXCOORD0～;	//UV  //optional
 	float4 vColor    : COLOR;		//頂点カラー  //optional
 	uint   vId       : SV_VertexID; //頂点番号  //optional
 	UNITY_VERTEX_INPUT_INSTANCE_ID	//GPUインスタンス用ID  //optional
@@ -193,13 +193,13 @@ nointerpolation float4 tex       : TEXCOORD0;
 ```
 
 - linear
-	+ 無指定だとこれ。普通のリニア補間
+	+ 無指定だとこれ。パースコレクト(posCS.w掛けておいてリニア補完後の値をposCS.wで割る感じ)ありのリニア補間
 - nointerpolation
-	+ 補間なし。たぶん、トライアングル0番？頂点の値だけが来てる。
+	+ 補間なし。たぶん、トライアングルを構成する最初の頂点?の値が そのまま来る。
 - noperspective
 	+ パース補正なし（つまりスクリーンスペース)のリニア補間
 - centroid
-	+ 三角形の重心補間あり。MSAA必須。トライアングルのエッジ（メッシュのエッジだけではない）でアンチかかる感じがあるが、精度あまいので、グラデがディザったりもするぞ。なので、その後ライン抽出とかやるとlinearより荒れる。
+	+ SV_POSITIONにサブピクセルのサンプリング点の値を出力する等。MSAA必須。トライアングルのエッジ（メッシュのエッジだけではない）でアンチかかる感じがあるが、精度あまいので、グラデがディザったりもするぞ。なので、その後ライン抽出とかやるとlinearより荒れる。
 - sample
 	+ ShaderModel4.1以降。MSAA必須。pixel中心ではなくsample点で値を取る。これ使った時点で、MSAAの全サンプル点についてfragmentShaderが走る。(SV_SampleIndex読んだ時とかと同じように)。高周波なシェーディングも綺麗ー…なぜならSuperSamplingだから！(順当に負荷が上がる)
 
