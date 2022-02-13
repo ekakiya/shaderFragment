@@ -18,7 +18,8 @@ uvがfloat2しかセットできない等。
 [SetVertexBufferParams](https://docs.unity3d.com/ScriptReference/Mesh.SetVertexBufferParams.html)でバッファのレイアウトを指定、[SetVertexBufferData](https://docs.unity3d.com/ScriptReference/Mesh.SetVertexBufferData.html)で中身をセット。  
 いちばんストレートな感じがするが、プラットフォーム差の吸収とか手動でやらないといけない気がして、未検証の為、実験的にしか利用していない。
 
-
+.    
+---
 # Meshのファイナライズ
 雰囲気で生成したメッシュを、triangle stripとかいい感じにして欲しい時は[Mesh.Optimize](https://docs.unity3d.com/ScriptReference/Mesh.Optimize.html)。  
-メッシュが完成したら[Mesh.UploadMeshData(true)](https://docs.unity3d.com/ScriptReference/Mesh.UploadMeshData.html)でGPUデータを更新&CPUデータを削減する。カスタムインポータでMewshアセット作っている時も、これによってisReadableフラグを切ること。
+メッシュが完成したら[Mesh.UploadMeshData(true)](https://docs.unity3d.com/ScriptReference/Mesh.UploadMeshData.html)でGPUデータを更新&CPUデータを削減する。カスタムインポータでMeshアセット作っている時も、これによってisReadableフラグを切ること。

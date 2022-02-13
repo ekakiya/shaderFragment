@@ -122,3 +122,30 @@ half4 env = SAMPLE_TEXTURECUBE_LOD( unity_SpecCube0, samplerunity_SpecCube0, ref
 real alpha = max(unity_SpecCube0_HDR.w * (env.a - 1.0) + 1.0, 0.0);
 return (unity_SpecCube0_HDR.x * PositivePow(alpha, unity_SpecCube0_HDR.y)) * env.rgb;
 ```
+
+---
+# 法線マップの合成
+Tangent空間法線マップの合成には [いくつかの流派](https://blog.selfshadow.com/publications/blending-in-detail/)がある。ガチ寄りといえばTBN空間での回転を行うものであった。  
+とりあえず、PhotoshopでOverRay合成するのは、やめた方が良い。  
+Unity（の主にHDRP）では[SurfaceGradientを利用した合成](https://blog.unity.com/ja/technology/normal-map-compositing-using-the-surface-gradient-framework-in-shader-graph)が導入されており、イケている。([論文](https://jcgt.org/published/0009/03/04/))  
+コードとしては[SRP.core.SurfaceGradient.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl)を利用する事ができ、これはTriplanerマッピングなど各種方式をSurfaceGradで扱う 統合的なライブラリになっている。  
+基本だけ扱うなら以下のような感じ
+```
+float2 GetDerivTSFromNormTS(float3 normTS)
+{
+    float2 rcpz = rcp(max(normTS.z, FLT_EPS));
+    return -rcpz * normTS.xy;
+}
+
+float3 GetSurfGradWSFromDerivTS(float2 derivTS, float3 vTangentWS, float3 vBinormalWS)
+{
+    return derivTS.x * vTangentWS + derivTS.y * vBinormalWS;
+}
+
+float3 GetNormalWSFromSurfGradWS(float3 surfGradWS, float3 vNormalWS)
+{
+    return SafeNormalize(vNormalWS - surfGradWS);
+}
+```
+ただし、ハードウェアによってはFLT_EPSだとキツすぎて計算エラーするので、もう少し保守的な値でクリップするのが良さそう。  
+SurfaceGrad合成系で、mikkt空間でベイクした法線マップを運用するケースは[Matrix.md](https://github.com/ekakiya/shaderFragment/blob/master/Matrix.md)を参照。
