@@ -229,7 +229,7 @@ if (!_CullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
 	return false;
 
 //. shadowBias,shadowNormalBias値を、カメラ画角に応じて補正
-float frustumSize = 2.0f / _Dat.shadow.shadowProjectionMatrix.m00;
+float frustumSize = 2.0f / shadowProjectionMatrix.m00;
 shadowRenderSetting.x *= frustumSize;
 shadowRenderSetting.y *= frustumSize;
 

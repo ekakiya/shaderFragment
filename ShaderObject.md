@@ -60,6 +60,13 @@ _ZWrite =
 	Off   //Zバッファに描き込まない
 ```
 
+## AlphaToCoverge
+MSAAバッファへの出力限定、出力アルファ値に応じて一部のサブピクセルにのみ描き込む。
+MSAA4対象なら4段階、MSAA2対象なら2段階の半透明グラデとなるが、MSAA2対象で描き込むと勝手にディザパターンが施される。本当はMSAA4の時もディザ乗ってるのかも？
+```
+AlphaToMask On
+```
+
 ## カラー合成
 ```
 BlendOp [_BlendOp]
@@ -259,8 +266,8 @@ Texture2DMS<float4> _CameraMsaaAttachment;
 ## 基本的な書き方
 1．Properties {} 内で
 ```
-[KeywordEnum(_ON,_SPECIAL)]
-	_ALPHATEST("alpha option", Float) = 0
+[KeywordEnum(ON,SPECIAL)]
+	_AlphaTest("alpha option", Float) = 0
 ```
 これを、  
 Pass内で以下のように定義

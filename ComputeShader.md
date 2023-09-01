@@ -79,7 +79,7 @@ SRP.coreの[DecodeMorton2D](https://github.com/Unity-Technologies/Graphics/blob/
 void CSMain(uint GTid : SV_GroupThreadID, uint2 Gid : SV_GroupID)
 { 
   //.
-  uint2 pixelPosSCS = Gid * blocksize + DecodeMorton2D(GTid);
+  uint2 pixelPosSCS = Gid * blocksize * blocksize + DecodeMorton2D(GTid);
   ...
 
 ```
