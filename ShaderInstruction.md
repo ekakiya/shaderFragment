@@ -255,7 +255,7 @@ Texture2DMS<type,sampleCount> textureName  //MSAAテクスチャをsample番号�
 Texture2DArray<type> textureName  //普通のテクスチャアレイをセット
 ```
 セットしたテクスチャは、LOAD_TEXTURE2D_MSAAなどのマクロでサンプリング可能。
-[参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl#L146)  
+[参考](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl#L146)  
 
 
 ---

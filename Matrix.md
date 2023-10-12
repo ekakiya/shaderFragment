@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 # 座標空間の種類
-[SRP.core/Common.hlsl参照](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl)  
+[SRP.core/Common.hlsl参照](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl)  
 ```
 AWS: ワールド絶対座標      Absolute world space
 WS : カメラ相対座標       World space
@@ -96,12 +96,12 @@ float3   viewDirTS       = mul( objectToTangent, viewDirOS);
 ```
 
 ## その他 空間変換メモ
-[SRP.core/SpaceTransform.hlsl参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl)  
+[SRP.core/SpaceTransform.hlsl参考](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl)  
 ```
 posVS  = mul(UNITY_MATRIX_V, float4(posWS, 1.0)).xyz;
 ```
 
-[URP/ShaderVariablesFunctions.hlsl/GetVertexPositionInputs参考](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl)  
+[URP/ShaderVariablesFunctions.hlsl/GetVertexPositionInputs参考](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl)  
 ```
 float4 ndc = posCS * 0.5f;
 posNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;

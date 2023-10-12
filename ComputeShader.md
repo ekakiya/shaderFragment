@@ -69,7 +69,7 @@ uint  GI   : SV_GroupIndex			//シェーダー側の	スレッド番号(n)		= (0
 
 ---
 # 実際には、CSで画像処理するなら、mortonレイアウトを使うのが良い
-SRP.coreの[DecodeMorton2D](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl#L62#L65)とか利用しよう。  
+SRP.coreの[DecodeMorton2D](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl#L62#L65)とか利用しよう。  
 
 ## Shader側
 ```

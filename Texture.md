@@ -132,7 +132,7 @@ _RtCompute?.Release();
 
 ---
 # Mipmap限界レベル設定
-[参考1](https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Graphics/Texture.cs#L494), [参考2](https://forum.unity.com/threads/limiting-the-amount-of-mipmap-levels.650011/#post-5089640)  
+[参考1](https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Graphics/Texture.cs#L829), [参考2](https://forum.unity.com/threads/limiting-the-amount-of-mipmap-levels.650011/#post-5089640)  
 TextureのMipmap限界レベルを、生成時にスクリプトから設定できる。
 ```
 new Texture2D(width:256, height:256, textureFormat:TextureFormat.ARGB32, mipCount:3, linear:true)

@@ -127,7 +127,7 @@ return (unity_SpecCube0_HDR.x * PositivePow(alpha, unity_SpecCube0_HDR.y)) * env
 # 法線マップの合成
 Tangent空間法線マップの合成には [いくつかの流派](https://blog.selfshadow.com/publications/blending-in-detail/)がある。ガチ寄りといえばTBN空間での回転を行うものであった。  
 とりあえず、PhotoshopでOverLay合成するのは、やめた方が良い。ぱっと見 合成できているだけで、値を壊しているので。  
-Unity（の主にHDRP）では[SurfaceGradientを利用した合成](https://blog.unity.com/ja/technology/normal-map-compositing-using-the-surface-gradient-framework-in-shader-graph)が導入されており、イケている。([論文](https://jcgt.org/published/0009/03/04/)) コードとしては[SRP.core.SurfaceGradient.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl)が利用できる、これはTriplanerマッピングなど各種方式をSurfaceGradで扱う 統合的なライブラリになっている。  
+Unity（の主にHDRP）では[SurfaceGradientを利用した合成](https://blog.unity.com/ja/technology/normal-map-compositing-using-the-surface-gradient-framework-in-shader-graph)が導入されており、イケている。([論文](https://jcgt.org/published/0009/03/04/)) コードとしては[SRP.core.SurfaceGradient.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl)が利用できる、これはTriplanerマッピングなど各種方式をSurfaceGradで扱う 統合的なライブラリになっている。  
 基本だけ扱うなら以下のような感じ
 ```
 float2 GetDerivTSFromNormTS(float3 normTS)
