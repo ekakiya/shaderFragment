@@ -122,6 +122,77 @@ UNITY_INSTANCING_BUFFER_START(PerDrawSprite)
 
 
 ---
+# Unity DOTS Instancing
+ECSのレンダリングパッケージEntity.Graphicsを使ってレンダリングする場合、またはBatchedRendererGroupを自分で使う場合、Unity2023以降で自動BRGをオンにした場合、
+シェーダ側は この、DOTS Instancingパスを利用して描画する事になる。
+このパスではMATRIX_Mも含めて個々のインスタンス描画情報がConstantBufferではなくGraphicsBufferに非同期アップロードされており、これをIDで拾いに行く必要がある。
+といっても、基本的な対応はSRP core/Common.hlsl - Instancing.hlsl - DOTSInstancing.hlslあたりで定義されており、自作シェーダ側での対応はシンプルで、DOTS_INSTANCING_ON版のコンパイルを加えるだけ。VFX Graph利用を兼ねつつ書くとして以下のようになる。
+```
+#pragma multi_compile_instancing
+#pragma instancing_options nolightprobe nolightmap nolodfade
+
+#ifndef HAVE_VFX_MODIFICATION
+ #pragma multi_compile _ DOTS_INSTANCING_ON
+ #if UNITY_PLATFORM_ANDROID || UNITY_PLATFORM_WEBGL || UNITY_PLATFORM_UWP
+  #pragma target 3.5 DOTS_INSTANCING_ON
+ #else
+  #pragma target 4.5 DOTS_INSTANCING_ON
+ #endif
+#endif
+```
+
+また、マテリアルの自前プロパティをDOTS Instancing時にインスタンスごと可変にするには、以下のようにプロパティ群を定義しておき、
+```
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
+   UNITY_DOTS_INSTANCED_PROP(type, name);
+ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
+#endif
+```
+シェーダ内では以下のように値を読む必要がある。
+```
+hoge  = UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, name);
+```
+
+## 独自RPでの使用
+URP,HDRPでなく独自のRP内でDOTS INSTANCINGを利用する場合、以下のような定義も必要。
+基本的には いつものPER_DRAWパラメータ参照マクロをDOTS_INSTANCINGで用意されるPROPに読み替える感じ。
+あわせて、いつものGPU INSTANCINGにおけるINSTANCE_IDセットアップ用マクロにDOTS用の関数を追加している。
+```
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
+    UNITY_DOTS_INSTANCED_PROP(uint2,    unity_EntityId)
+ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
+
+ //.
+ #define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
+ #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
+ #define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
+
+ //. Set up by BRG picking/selection code
+ int unity_SubmeshIndex;
+ #define unity_SelectionID UNITY_ACCESS_DOTS_INSTANCED_SELECTION_VALUE(unity_EntityId, unity_SubmeshIndex, _SelectionID)
+
+ //.
+ #if defined(MYRP_SETUP_INSTANCE_ID)
+  #undef MYRP_SETUP_INSTANCE_ID
+  #define MYRP_SETUP_INSTANCE_ID(input) {\
+   UnitySetupInstanceID(UNITY_GET_INSTANCE_ID(input));\
+   SetupDOTSVisibleInstancingData(); } //\
+   //UNITY_SETUP_DOTS_SH_COEFFS; }
+ #endif
+
+#else
+ #define unity_SelectionID _SelectionID
+
+#endif
+```
+
+---
 # SRPのCBuffer
 ## Render Layer
 貴重なUnityPerDrawプロパティ。使っていなければ、インスタンス単位のIDとか仕込むのに使えて便利。  
@@ -327,3 +398,32 @@ output.clip = dot(posWS, float4(0,1,0,1.5)); //[option]クリッピングプレ�
 - プレーンの定義は： float4(x,y,z,l) //(x,y,z)ベクトルに鉛直な平面、原点からの距離l。
 - 複数足せる。総数はUnityシェーダ記述より外で設定されてる。
 - DirectX10以降
+
+
+---
+# ShaderからPrintf出力
+シェーダからのデバッグ文字出力を、[自前実装する記事](https://therealmjp.github.io/posts/hlsl-printf/)が出たが、同じようにStructuredBufferを利用した手法がSRP.coreの[ShaderDebugPrint.hlsl](https://github.com/Unity-Technologies/Graphics/blob/2022.3/staging/Packages/com.unity.render-pipelines.core/ShaderLibrary/ShaderDebugPrint.hlsl)。  
+ただしてテキストは4文字のタグに絞って提供されている。  
+  
+RenderPipeline側では、毎フレ[描画前](https://github.com/Unity-Technologies/Graphics/blob/2022.3/staging/Packages/com.unity.render-pipelines.universal/Runtime/ScriptableRenderer.cs#L1783#L1784)と[描画後](https://github.com/Unity-Technologies/Graphics/blob/2022.3/staging/Packages/com.unity.render-pipelines.universal/Runtime/UniversalRenderPipeline.cs#L403)にコードを挿入する。(URPならENABLE_SHADER_DEBUG_PRINTをdefineする)
+```
+//. Render()の、描画はじめる前に
+ShaderDebugPrintManager.instance.SetShaderDebugPrintInputConstants(_Cmd, ShaderDebugPrintInputProducer.Get());
+ShaderDebugPrintManager.instance.SetShaderDebugPrintBindings(_Cmd);
+
+ 〜
+
+//. Render()の、最後のへんで
+ShaderDebugPrintManager.instance.EndFrame();
+```
+  
+シェーダ側では、ShaderDebugPrint.hlslをincludeして、ShaderDebugPrint()関数を利用する。文字は4文字まで、ShaderDebugTag()でintにパック。  
+PosCS等で絞り込んで 特定ピクセルのみデバッグ出力する形にするよう注意。ShaderDebugPrintMouseOver()関数でマウス直下のピクセルのみデバッグ出力も可能。
+```
+if(all(int2(input.posCS.xy) == int2(100, 100)))
+	ShaderDebugPrint(ShaderDebugTag('C','o','l'), output.color);
+
+ShaderDebugPrintMouseOver(int2(input.posCS.xy), ShaderDebugTag('E','m','i', 't'), output.emit);
+
+```
+
