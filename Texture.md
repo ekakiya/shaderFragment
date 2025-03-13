@@ -164,8 +164,8 @@ public static Texture2D CreateLimitedMipmapsTexture(Texture2D sourceTexture, Tex
 
 # Gather
 きっちり特定pixelを示すUVでGatherした場合、集められる4サンプルは、当該ピクセルを左下にした2x2 pixel。
-下の図でいうaチャンネルがUV直下の値となる。
-
-r | g
---+--
-a | b
+下の図でいうaチャンネルがUV直下の値となる。  
+  
+r | g  
+--+--  
+a | b  

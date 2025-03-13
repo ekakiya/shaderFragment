@@ -302,7 +302,7 @@ VertexOutput >> FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMANTIC
 
 ## SV_Coverage //Alpha to Coverge の出力先
 Unityにおいては、shaderのPassにAlphaToMask Onをつけておくことで、AlphaToCoverge機能がオンになる。coverge値はfragmentからの出力アルファ値が使われる。  
-さらにps_5_0だと、SV_Coverageをinoutにもできて、ピクセルシェーダ内で値を活用できるらしい  
+さらにps_5_0では、SV_Coverageをinoutにもできて、ピクセルシェーダ内で値を活用できる。  
 
 
 ---
@@ -402,8 +402,8 @@ output.clip = dot(posWS, float4(0,1,0,1.5)); //[option]クリッピングプレ�
 
 ---
 # ShaderからPrintf出力
-シェーダからのデバッグ文字出力を、[自前実装する記事](https://therealmjp.github.io/posts/hlsl-printf/)が出たが、同じようにStructuredBufferを利用した手法がSRP.coreの[ShaderDebugPrint.hlsl](https://github.com/Unity-Technologies/Graphics/blob/2022.3/staging/Packages/com.unity.render-pipelines.core/ShaderLibrary/ShaderDebugPrint.hlsl)。  
-ただしてテキストは4文字のタグに絞って提供されている。  
+シェーダからのデバッグ文字出力を、[自前実装する記事](https://therealmjp.github.io/posts/hlsl-printf/)が出たが、同じ感じでStructuredBufferを利用した手法がSRP.coreの[ShaderDebugPrint.hlsl](https://github.com/Unity-Technologies/Graphics/blob/2022.3/staging/Packages/com.unity.render-pipelines.core/ShaderLibrary/ShaderDebugPrint.hlsl)として提供されている。  
+ただしテキスト表示は4文字までのタグに限定。  
   
 RenderPipeline側では、毎フレ[描画前](https://github.com/Unity-Technologies/Graphics/blob/2022.3/staging/Packages/com.unity.render-pipelines.universal/Runtime/ScriptableRenderer.cs#L1783#L1784)と[描画後](https://github.com/Unity-Technologies/Graphics/blob/2022.3/staging/Packages/com.unity.render-pipelines.universal/Runtime/UniversalRenderPipeline.cs#L403)にコードを挿入する。(URPならENABLE_SHADER_DEBUG_PRINTをdefineする)
 ```
@@ -427,3 +427,9 @@ ShaderDebugPrintMouseOver(int2(input.posCS.xy), ShaderDebugTag('E','m','i', 't')
 
 ```
 
+---
+# half精度の定数の表記
+half計算命令に入れる定数を、明示的に half(1.0)とか書く必要がある。  
+hlsl内で、half指定はmin16floatであるため、1.0h表記は通らない。  
+このhlslから各種シェーダ言語に変換〜クロスコンパイルされる都合上、この表記が必要。  
+また、定数を明示的にhalfにしないと、コンパイル段階で、float計算してhalfにキャスト、というコードにされがち。

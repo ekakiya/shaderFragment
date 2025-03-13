@@ -62,7 +62,7 @@ _ZWrite =
 
 ## AlphaToCoverge
 MSAAバッファへの出力限定、出力アルファ値に応じて一部のサブピクセルにのみ描き込む。
-MSAA4対象なら4段階、MSAA2対象なら2段階の半透明グラデとなるが、MSAA2対象で描き込むと勝手にディザパターンが施される。本当はMSAA4の時もディザ乗ってるのかも？
+MSAA4対象なら4段階、MSAA2対象なら2段階の半透明グラデとなり、かつWinPC系グラボなどでは？勝手にディザパターンが施される。
 ```
 AlphaToMask On
 ```
@@ -365,3 +365,8 @@ Shader内にHLSLINCLUDEしたコードと、Shader/SubShader/Pass内のHLSLPROGR
 #pragma warning (disable : 3571) // pow使ったとき、入れた値が正の数だと証明できないと注意されるやつ。証明するのが面倒臭い事が多い
 #pragma warning (disable : 4008) // NaNが欲しくて0.0/0.0したり、INFが欲しくて1.0/0.0したりすると注意されるやつ。意図してやっている時は抑制してしまおう
 ```
+
+---
+# 特殊パス
+Tags{"LightMode" = "SceneSelectionPass"} // Editor上で、選択オブジェクトの輪郭表示（Depthから抽出）の為に使われる
+Tags{"LightMode" = "Picking"}            // Editor上で、オブジェクトを選択する当たり判定に使われるっぽい //自前で別途Matrixをセットされ、それに対応する必要がある
