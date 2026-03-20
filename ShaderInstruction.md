@@ -195,8 +195,8 @@ URP,HDRPでなく独自のRP内でDOTS INSTANCINGを利用する場合、以下�
 ---
 # SRPのCBuffer
 ## Render Layer
-貴重なUnityPerDrawプロパティ。使っていなければ、インスタンス単位のIDとか仕込むのに使えて便利。  
-Cullingには使われず、DrawRenderer時にbitmaskでマスクされる（SRPの設定に拠る）。0にするとさすがに描かれないので注意。  
+貴重なUnityPerDrawプロパティ。使っていなければ、インスタンス単位のIDなどを仕込むのに使えて便利。  
+なおRenderLayer本来の機能としては、Cullingには影響せず、DrawRenderer時にbitmaskでマスクされる（RendererListでカスタム指定可）。0以外の値であれば基本設定では描画される。  
   
 C#側
 ```
@@ -209,6 +209,24 @@ Shader側
 uint theNumber = asuint(unity_RenderingLayer.x);
 ```
 
+利用例としては、ディティールマップのリピート回数を入れる, オブジェクトインスタンス固有IDを入れて色バリエーションつけるなど。
+
+
+## Renderer User Value(Unity6.3-)
+貴重なUnityPerDrawプロパティが uintひとつ追加された。実態はunity_RenderingLayer.y。ただしシリアライズ対象外であり、Assetに値は保存されない(初期値0)。  
+ランタイム中でユニット番号を割り当てるとか、ダメージエフェクトをシェーダ芸でやるフラグに使うとか。  
+
+C#側
+```
+MeshRenderer mr = GetComponent<MeshRenderer>();
+mr.SetShaderUserValue(theNumber);
+```
+
+Shader側
+```
+uint theNumber = asuint(unity_RenderingLayer.y);
+```
+URPの場合 unity_RendererUserValueでも参照可能。
 
 ---
 # Semanticの基本
