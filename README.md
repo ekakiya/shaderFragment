@@ -1,2 +1,3 @@
 # shaderFragment
-おおむねUnity & SRP使用をメインターゲットに、Shader作法のメモ
+シェーダーと描画コマンドの Tips,仕様メモ  
+ターゲット：Unity6.3LTS with ScriptableRenderPipeline  
