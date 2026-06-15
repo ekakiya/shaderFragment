@@ -2,27 +2,27 @@
 /////////////////////////////////////////////////////////////  
   
 # (Native)RenderPassとは
-モバイルやAppleシリコンのPCはTBDR描画系の(画面を小さいタイルに分けて描いていく)GPUであり、Metal,VulkanといったAPIで、オンタイルメモリを活用する事で 高度な描画を低負荷 低電力で実現する事が求められる。  
-Unityの[RenderPass](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.BeginScopedRenderPass.html)系コマンドは この為に用意されている。  
-  
-  
+モバイルや AppleシリコンPCのGPUは、TBDR描画(画面を小さいタイルに分けて描いていく)という特徴を持つ。これらプラットフォームにおいては、Metal,Vulkanといった描画APIで、オンタイルメモリを活用する事で、高度な描画の低負荷,低電力消費な実現が期待できる。  
+Unityの[RenderPass](https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.BeginScopedRenderPass.html)系APIは、 この目的で用意されている。  
+
+
 ---
-# 実用性
-## APIの選択肢
-オンタイルメモリ運用に対応していないOpenGL,DirectX およびTBDRでないPC上のVulkanでは、普通のMRT描画にフォールバックした上で、基本的には同等の描画結果が得られる。  
+# 実用性について
+## 非対応プラットフォーム
+オンタイルメモリ運用に対応していないOpenGL,DirectX およびTBDRでないPC上のVulkanでは、通常のMultiRenderTarget描画にフォールバックした上で、基本的には同等の描画結果が得られる。  
   
-## コード対応コスト
+## 実装コスト
 - 描画コマンドのうち、SetRenderTarget周りが大きく異なる
 - シェーダコードのうち、RenderTextureのロード周りが異なる。アタッチされたMRTのスロットではなくPassで定義した番号でロードするなどクセ強めなので、マクロでカバーしたい。なお、シェーダ出力は普通のMRTと一緒
-- MetalとVulkanでMSAAのサブピクセルサンプリング仕様が異なるなど、気にする事はある程度増える
+- MetalとVulkanでMSAAのサブピクセルサンプリング仕様が異なるなど、プラットフォーム差は びみょうに残る
   
 ## URP-RenderGraph上での実用状況
 - RenderGraphのリソース管理部分で (かなり保守的にだが)NativeRenderPass対応が行われる。シェーダコードは自前での用意が必要
 - URPの定義した用語 ScriptableRenderPassと名前が被っていて、ややこしい
-  
-  
+
+
 ---
-# コードのイメージ
+# 実装イメージ
   
 C#側
 ```
@@ -93,8 +93,8 @@ half4 emit = LOAD_FB_INPUT_MS(0, 0, posCS_XY);
 half4 mask = LOAD_FB_INPUT_MS(1, 0, posCS_XY);
 
 ```
-  
-  
+
+
 ---
 # 関連リンク(OLD)
 ・[カスタムSRPサンプルのRenderPass使用例](https://github.com/cinight/CustomSRP/tree/master/Assets/SRP0802_RenderPass)、ただ、これはシェーダ側のマクロがBRPのもののローカルコピーなので、  

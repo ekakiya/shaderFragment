@@ -1,7 +1,6 @@
-//// RenderCommand関連 ////////////////////////////////////////////////////////
-//				
-//////////////////////////////////////////////////////////////////////////////
-
+///[ SRPの描画CommandBuffer,Contextについて ]  
+/////////////////////////////////////////////////////////////  
+  
 # 描画時のソート設定
 [参考](https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Rendering.SortingCriteria.html)  
 SortingCriteria、このbitmaskで rendererのソート設定を指定する。  
@@ -65,9 +64,3 @@ OpaqueWithoutFrontToBack = SortingCriteria.SortingLayer | SortingCriteria.Render
 1. コマンドバッファ名と同名でBeginSample/EndSampleすること。
 2. Sampleを入れ子にしたかったら、コマンドバッファも分けること。
 3. BeginSample/EndSampleした直後に、コマンドバッファ実行をコンテクストに入力して、コマンドバッファをクリアすること。
-
-
----
-# BeginRenderPass系
-基本は[カスタムSRPサンプルのRenderPass使用例](https://github.com/cinight/CustomSRP/tree/master/Assets/SRP0802_RenderPass)、これだとシェーダ側のマクロがBRPのもののローカルコピーなので、  
-Unity2021系でSRP側にBeginRenderPass系が入った実コードとして[URPのNativeRenderPass](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.universal/Runtime/NativeRenderPass.cs)と[SRP.core/Common.hlslのタイルメモリ取得系マクロ](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl#L252#L390)
